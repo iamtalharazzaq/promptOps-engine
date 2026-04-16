@@ -33,20 +33,6 @@
 
 ---
 
-## 🗺️ Roadmap Summary
-
-We are on a **10-week journey** to build the ultimate PromptOps platform.
-
-1.  **Week 01-02**: Core Foundation & Schema Guard
-2.  **Week 03-04**: Observability & CI/CD Pipelines
-3.  **Week 05-06**: Identity, Sessions & Agentic Loops
-4.  **Week 07-08**: Context Engineering (RAG) & Performance
-5.  **Week 09-10**: Advanced Visuals & Cloud Deployment
-
-👉 **[View Full Roadmap](docs/ROADMAP.md)** | 📘 **[View Weekly Progress Log](docs/WEEKLY_LOG.md)**
-
----
-
 ## 🛠️ Tech Stack
 
 ### Backend
