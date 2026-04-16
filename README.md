@@ -1,41 +1,96 @@
-# 👻 GhostAI Lite
+# ⚙️ PromptOps Engine
+**LLM Orchestration Platform with Schema Validation, Metrics & CI/CD**
 
-> A premium, production-ready AI chat foundation built with Go and Next.js.
+---
 
-GhostAI Lite is an 8-week structured project designed to teach full-stack AI engineering, from SSE streaming and local inference (Ollama) to CI/CD and production deployment.
+![PromptOps Banner](https://img.shields.io/badge/Status-Development-emerald?style=for-the-badge)
+![Go](https://img.shields.io/badge/Backend-Go-00ADD8?style=for-the-badge&logo=go)
+![Next.js](https://img.shields.io/badge/Frontend-Next.js-black?style=for-the-badge&logo=next.js)
+![Docker](https://img.shields.io/badge/Deploy-Docker-2496ED?style=for-the-badge&logo=docker)
 
-![GhostAI Lite UI](file:///home/ubuntu/.gemini/antigravity/brain/4e83cdf3-7cca-49d6-9c30-3f7f98bc2fb8/final_ghostai_ui_state_1776335039842.png)
+---
 
-## 🚀 Week 1 Accomplishments
+## 🚀 Overview
 
-- **Monorepo Architecture**: Clean separation between `backend/` (Go) and `frontend/` (Next.js).
-- **Go SSE Streaming**: High-performance backend using Chi router and Server-Sent Events to stream LLM responses from Ollama.
-- **Premium UI/UX**: Emerald green & black "hacker" aesthetic with glassmorphism, scanline effects, and a custom ghost logo.
-- **Docker Orchestration**: Multi-stage Dockerfiles and a root `docker-compose.yml` for instant local development.
-- **Configurable Inference**: Integrated token limits (`num_predict`) and model selection (defaulting to `tinyllama`).
+**PromptOps Engine** is a high-performance, developer-centric platform designed to bridge the gap between local LLM inference and production-ready applications. It provides a robust orchestration layer with a focus on **Type Safety**, **Real-time Observability**, and **CI/CD Best Practices**.
+
+> [!IMPORTANT]
+> This project is currently in its foundation phase (**Week 01**). All core features are functional, but advanced orchestration and validation layers are under active development.
+
+---
+
+## ✨ Features
+
+| Feature | Description | Status |
+| :--- | :--- | :---: |
+| **Real-time Streaming** | Multi-token SSE streaming for ultra-low latency responses. | ✅ |
+| **Monorepo Workflow** | Unified Go backend and Next.js frontend management. | ✅ |
+| **Local Inference** | Native Ollama integration for zero-cost, private AI usage. | ✅ |
+| **Premium UI** | Stunning Emerald/Black "hacker" aesthetic with glassmorphism. | ✅ |
+| **Schema Validation** | Type-safe JSON output enforcement for industrial use. | ⏳ |
+| **Metrics & Monitoring** | Native Prometheus metrics for token usage and latency. | ⏳ |
+| **CI/CD Driven** | Automated deployment pipelines and container security. | ⏳ |
+
+---
+
+## 🗺️ Roadmap Summary
+
+We are on a **10-week journey** to build the ultimate PromptOps platform.
+
+1.  **Week 01-02**: Core Foundation & Schema Guard
+2.  **Week 03-04**: Observability & CI/CD Pipelines
+3.  **Week 05-06**: Identity, Sessions & Agentic Loops
+4.  **Week 07-08**: Context Engineering (RAG) & Performance
+5.  **Week 09-10**: Advanced Visuals & Cloud Deployment
+
+👉 **[View Full Roadmap](docs/ROADMAP.md)** | 📘 **[View Weekly Progress Log](docs/WEEKLY_LOG.md)**
+
+---
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Go (Chi, SSE, NDJSON)
-- **Frontend**: Next.js 14 (App Router, TS, Vanilla CSS)
-- **AI**: Ollama (local LLM inference)
-- **DevOps**: Docker, Docker Compose
+### Backend
+- **Language**: Go (v1.22+)
+- **Routing**: `chi` router (lightweight & fast)
+- **Streaming**: Server-Sent Events (SSE)
+- **Configuration**: Environment-driven with `.env` support
 
-## 🚦 Quick Start
-
-### Prerequisites
-- [Docker](https://docs.docker.com/get-docker/) & [Ollama](https://ollama.com/)
-- `ollama pull tinyllama`
-
-### Spin up the stack
-```bash
-docker compose up --build
-```
-The UI will be available at `http://localhost:3000` and the API at `http://localhost:8080`.
-
-## 📖 Documentation
-- [Developer Guide](docs/DEV_GUIDE.md) — Deep dive into architecture and features.
-- [Week 1 Walkthrough](.system_generated/walkthrough.md) — Final verification screenshots and feature recap.
+### Frontend
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Premium Vanilla CSS (Zero-utility bloat)
+- **Design**: Emerald accent, Dark Mode, Glassmorphism
 
 ---
-Built with 💚 and ghosts.
+
+## 📦 Getting Started
+
+### Prerequisites
+- [Docker](https://www.docker.com/) & Docker Compose
+- [Ollama](https://ollama.com/) (running locally)
+
+### Quick Start
+```bash
+# Clone the repository
+git clone https://github.com/promptops/engine.git
+
+# Start the engine
+docker compose up --build
+```
+
+### Pulling a Model (Required for first run)
+```bash
+docker compose exec ollama ollama pull tinyllama
+```
+
+---
+
+## 📄 Documentation
+- 📖 **[Developer Guide](docs/DEV_GUIDE.md)**
+- 🗺️ **[10-Week Roadmap](docs/ROADMAP.md)**
+- 📝 **[Weekly Progress Log](docs/WEEKLY_LOG.md)**
+
+---
+
+## 🛡️ License
+Distributed under the MIT License. See `LICENSE` for more information.

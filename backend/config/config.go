@@ -1,5 +1,5 @@
 // Package config provides centralised configuration management for the
-// GhostAI Lite backend. It reads values from environment variables (with
+// PromptOps Engine backend. It reads values from environment variables (with
 // optional .env file support via godotenv) and exposes a single Config
 // struct consumed by the rest of the application.
 //
@@ -41,10 +41,20 @@ func Load() *Config {
 
 	return &Config{
 		Port:        getEnv("PORT", "8080"),
-		OllamaHost:  getEnv("OLLAMA_HOST", "http://localhost:11434"),
+		OllamaHost:  getEnv("OLLAMA_HOST", ""), // Require explicit config
 		OllamaModel: getEnv("OLLAMA_MODEL", "tinyllama"),
-		FrontendURL: getEnv("FRONTEND_URL", "http://localhost:3000"),
+		FrontendURL: getEnv("FRONTEND_URL", ""), // Require explicit config
 		MaxTokens:   getEnvInt("MAX_TOKENS", 256),
+	}
+}
+
+// Validate checks if mandatory configuration values are present.
+func (c *Config) Validate() {
+	if c.OllamaHost == "" {
+		log.Fatal("[config] ERROR: OLLAMA_HOST is required but not set in environment")
+	}
+	if c.FrontendURL == "" {
+		log.Fatal("[config] ERROR: FRONTEND_URL is required but not set in environment")
 	}
 }
 

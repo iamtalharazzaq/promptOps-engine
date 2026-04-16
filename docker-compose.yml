@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════
-#  GhostAI Lite — Docker Compose (Local Development)
+#  PromptOps Engine — Docker Compose (Local Development)
 # ═══════════════════════════════════════════════════════════════
 #
 #  Orchestrates three services for local development:
@@ -11,9 +11,6 @@
 #
 #  Usage:
 #    docker compose up --build        # build & start all services
-#    docker compose up -d             # start in background
-#    docker compose logs -f backend   # tail backend logs
-#    docker compose down              # stop all services
 #
 #  NOTE: On first run, pull a model:
 #    docker compose exec ollama ollama pull tinyllama
@@ -25,11 +22,11 @@ services:
   # ── Ollama (LLM inference server) ──────────────────────────
   ollama:
     image: ollama/ollama:latest
-    container_name: ghostai-ollama
+    container_name: promptops-ollama
     ports:
       - "11434:11434"
     volumes:
-      - ollama_data:/root/.ollama    # persist downloaded models
+      - ollama_data:/root/.ollama
     restart: unless-stopped
 
   # ── Go Backend API ─────────────────────────────────────────
@@ -37,7 +34,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: ghostai-backend
+    container_name: promptops-backend
     ports:
       - "8080:8080"
     environment:
@@ -54,7 +51,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: ghostai-frontend
+    container_name: promptops-frontend
     ports:
       - "3000:3000"
     environment:

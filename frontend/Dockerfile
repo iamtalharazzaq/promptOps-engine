@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════
-#  GhostAI Lite — Next.js Frontend Dockerfile
+#  PromptOps Engine — Next.js Frontend Dockerfile
 # ═══════════════════════════════════════════════════════════════
 #
 #  Multi-stage build:
@@ -7,8 +7,8 @@
 #    Stage 2 (builder): runs `next build` to produce .next output
 #    Stage 3 (runner):  serves the built app with `next start`
 #
-#  Build:   docker build -t ghostai-frontend ./frontend
-#  Run:     docker run -p 3000:3000 ghostai-frontend
+#  Build:   docker build -t promptops-frontend ./frontend
+#  Run:     docker run -p 3000:3000 promptops-frontend
 # ═══════════════════════════════════════════════════════════════
 
 # ── Stage 1: Dependencies ──────────────────────────────────────

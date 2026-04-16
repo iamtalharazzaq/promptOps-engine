@@ -1,5 +1,5 @@
 /**
- * @fileoverview Root layout for GhostAI Lite frontend.
+ * @fileoverview Root layout for PromptOps Engine frontend.
  *
  * Sets up:
  * - Inter font via next/font/google
@@ -20,11 +20,10 @@ import "./globals.css";
 /** Inter font with Latin subset for clean, modern typography. */
 const inter = Inter({ subsets: ["latin"] });
 
-/** Default SEO metadata for GhostAI Lite. */
 export const metadata: Metadata = {
-  title: "GhostAI Lite",
+  title: "PromptOps Engine",
   description:
-    "AI assistant with structured outputs, observability, and full CI/CD — built with Go, Next.js, and Ollama.",
+    "LLM Orchestration Platform with Schema Validation, Metrics & CI/CD — built with Go, Next.js, and Ollama.",
 };
 
 /**

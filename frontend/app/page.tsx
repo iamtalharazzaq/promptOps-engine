@@ -1,5 +1,5 @@
 /**
- * @fileoverview Main chat page for GhostAI Lite.
+ * @fileoverview Main chat page for PromptOps Engine.
  *
  * This is the home page ("/") and provides the full ChatGPT-style
  * conversation interface. It manages:
@@ -38,6 +38,14 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [health, setHealth] = useState<HealthResponse | null>(null);
+  const [selectedModel, setSelectedModel] = useState("tinyllama");
+
+  const availableModels = [
+    { id: "tinyllama", name: "TinyLlama (Fast)" },
+    { id: "llama3", name: "Llama 3 (Smart)" },
+    { id: "mistral", name: "Mistral 7B" },
+    { id: "phi3", name: "Phi-3 Mini" }
+  ];
 
   /** Ref to the bottom of the message list for auto-scroll. */
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -103,7 +111,7 @@ export default function Home() {
         });
         setIsStreaming(false);
       },
-    });
+    }, selectedModel);
   };
 
   // ── Render ────────────────────────────────────────────────────
@@ -114,19 +122,33 @@ export default function Home() {
         <div className="header-content">
           <div className="logo-group">
             <div className="logo-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 10h.01" />
-                <path d="M15 10h.01" />
-                <path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z" />
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <path d="M12 8v8" />
+                <path d="M8 12h8" />
               </svg>
             </div>
-            <h1 className="logo-text">GhostAI <span className="logo-lite">Lite</span></h1>
+            <h1 className="logo-text">PromptOps <span className="logo-lite">Engine</span></h1>
           </div>
-          <div className="header-badges">
-            {health && (
-              <div className="token-badge">Limit: {health.maxTokens} tokens</div>
-            )}
-            <div className="header-badge">{health?.version || "v0.1.0"}</div>
+          
+          <div className="header-controls">
+            <select 
+              className="model-selector"
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              disabled={isStreaming}
+            >
+              {availableModels.map(m => (
+                <option key={m.id} value={m.id}>{m.name}</option>
+              ))}
+            </select>
+
+            <div className="header-badges">
+              {health && (
+                <div className="token-badge">{health.maxTokens}T</div>
+              )}
+              <div className="header-badge">{health?.version || "OSS"}</div>
+            </div>
           </div>
         </div>
       </header>
@@ -135,9 +157,9 @@ export default function Home() {
       <div id="messages-container" className="messages-area">
         {messages.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">👻</div>
-            <h2>Welcome to GhostAI Lite</h2>
-            <p>Start a conversation with your local AI assistant.</p>
+            <div className="empty-icon">⚙️</div>
+            <h2>Welcome to PromptOps Engine</h2>
+            <p>High-performance LLM orchestration with schema validation.</p>
             <div className="empty-hints">
               <button className="hint-chip" onClick={() => setInput("Explain how Go handles concurrency")}>
                 Explain Go concurrency
@@ -171,9 +193,14 @@ export default function Home() {
           onSend={handleSend}
           disabled={isStreaming}
         />
-        <p className="disclaimer">
-          GhostAI Lite runs models locally via Ollama. Responses may vary.
-        </p>
+        <div className="disclaimer-container">
+          <svg className="ollama-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+          </svg>
+          <p className="disclaimer">
+            Powered by <b>Ollama</b> • Trusted Schema Validation
+          </p>
+        </div>
       </div>
     </main>
   );

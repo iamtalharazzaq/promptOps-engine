@@ -1,4 +1,4 @@
-# GhostAI Lite — Developer Guide
+# PromptOps Engine — Developer Guide
 
 > Everything you need to know about the project: architecture, features, API reference, and development workflow.
 
@@ -153,7 +153,7 @@ All configuration is via environment variables (with `.env` file support):
 {
   "status": "ok",
   "timestamp": "2026-04-16T09:14:00Z",
-  "service": "ghostai-backend",
+  "service": "promptops-backend",
   "version": "0.1.0"
 }
 ```

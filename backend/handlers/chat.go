@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ghostai-lite/backend/services"
+	"github.com/promptops/backend/services"
 )
 
 // -----------------------------------------------------------------------

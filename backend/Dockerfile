@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════
-#  GhostAI Lite — Go Backend Dockerfile
+#  PromptOps Engine — Go Backend Dockerfile
 # ═══════════════════════════════════════════════════════════════
 #
 #  Multi-stage build:
@@ -7,8 +7,8 @@
 #    Stage 2 (runtime): copies the ~15MB static binary into a
 #                       minimal alpine image for production
 #
-#  Build:   docker build -t ghostai-backend ./backend
-#  Run:     docker run -p 8080:8080 ghostai-backend
+#  Build:   docker build -t promptops-backend ./backend
+#  Run:     docker run -p 8080:8080 promptops-backend
 # ═══════════════════════════════════════════════════════════════
 
 # ── Stage 1: Build ──────────────────────────────────────────────
@@ -22,7 +22,7 @@ RUN go mod download
 
 # Copy source and build a static binary
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /ghostai-backend main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /promptops-backend main.go
 
 # ── Stage 2: Runtime ────────────────────────────────────────────
 FROM alpine:3.19
@@ -31,7 +31,7 @@ FROM alpine:3.19
 RUN apk --no-cache add ca-certificates
 
 WORKDIR /app
-COPY --from=builder /ghostai-backend .
+COPY --from=builder /promptops-backend .
 
 # Default env vars (overridable via docker-compose or -e flags)
 ENV PORT=8080
@@ -45,4 +45,4 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
   CMD wget -qO- http://localhost:8080/health || exit 1
 
-CMD ["./ghostai-backend"]
+CMD ["./promptops-backend"]

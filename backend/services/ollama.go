@@ -1,4 +1,4 @@
-// Package services contains business-logic services consumed by the HTTP
+// Package services contains external service clients for the PromptOps Engine
 // handlers. Each service encapsulates a single external dependency, keeping
 // the handler layer thin and testable.
 //
@@ -31,7 +31,7 @@ type OllamaClient struct {
 }
 
 // GenerateRequest is the payload sent to Ollama's /api/generate endpoint.
-// Only the fields used by GhostAI Lite are included; Ollama accepts many
+// Only the fields used by PromptOps Engine are included; Ollama accepts many
 // more options (temperature, top_k, etc.) that can be added later.
 type GenerateRequest struct {
 	Model   string          `json:"model"`           // Model name, e.g. "tinyllama"

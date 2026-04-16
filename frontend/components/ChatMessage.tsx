@@ -1,5 +1,5 @@
 /**
- * @fileoverview ChatMessage component for GhostAI Lite.
+ * @fileoverview ChatMessage component for PromptOps Engine.
  *
  * Renders a single message bubble in the conversation thread. Supports
  * two roles:
@@ -42,7 +42,7 @@ export default function ChatMessage({
     <div className={`message-row ${role}`}>
       {/* Avatar indicator */}
       <div className={`avatar ${role}`}>
-        {role === "user" ? "You" : "AI"}
+        {role === "user" ? "ME" : "PS"}
       </div>
 
       {/* Message bubble */}

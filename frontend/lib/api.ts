@@ -1,5 +1,5 @@
 /**
- * @fileoverview API client for communicating with the GhostAI Lite backend.
+ * @fileoverview API client for communicating with the PromptOps Engine backend.
  *
  * This module provides a streaming-aware fetch wrapper that consumes
  * Server-Sent Events (SSE) from the Go backend's /chat endpoint and
@@ -8,8 +8,12 @@
  * @module lib/api
  */
 
-/** Base URL of the Go backend API. Falls back to localhost:8080 in dev. */
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+/** Base URL of the Go backend API. Must be provided via environment. */
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+if (!API_BASE) {
+  console.warn("NEXT_PUBLIC_API_URL is not set. API calls will fail.");
+}
 
 /**
  * Shape of a single SSE chat event from the backend.

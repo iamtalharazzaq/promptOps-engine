@@ -1,6 +1,6 @@
-// GhostAI Lite Backend
+// PromptOps Engine Backend
 //
-// This is the entry point for the GhostAI Lite API server. It wires
+// This is the entry point for the PromptOps Engine API server. It wires
 // together configuration, middleware, services, and HTTP handlers into
 // a single chi router and starts listening for requests.
 //
@@ -25,10 +25,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ghostai-lite/backend/config"
-	"github.com/ghostai-lite/backend/handlers"
-	"github.com/ghostai-lite/backend/middleware"
-	"github.com/ghostai-lite/backend/services"
+	"github.com/promptops/backend/config"
+	"github.com/promptops/backend/handlers"
+	"github.com/promptops/backend/middleware"
+	"github.com/promptops/backend/services"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -36,8 +36,9 @@ import (
 func main() {
 	// ── Load configuration ──────────────────────────────────────
 	cfg := config.Load()
+	cfg.Validate()
 
-	log.Printf("[main] GhostAI Lite Backend v0.1.0")
+	log.Printf("[main] PromptOps Engine Backend v0.1.0")
 	log.Printf("[main] Ollama host  : %s", cfg.OllamaHost)
 	log.Printf("[main] Ollama model : %s", cfg.OllamaModel)
 	log.Printf("[main] Max tokens   : %d", cfg.MaxTokens)

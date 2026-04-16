@@ -1,4 +1,4 @@
-module github.com/ghostai-lite/backend
+module github.com/promptops/backend
 
 go 1.23.2
 

@@ -1,4 +1,4 @@
-// Package handlers provides HTTP handler functions for the GhostAI Lite API.
+// Package handlers provides HTTP handler functions for the PromptOps Engine API.
 //
 // Available endpoints:
 //
@@ -21,7 +21,7 @@ import (
 type HealthResponse struct {
 	Status    string `json:"status"`    // Always "ok" when the server is reachable
 	Timestamp string `json:"timestamp"` // ISO-8601 server time
-	Service   string `json:"service"`   // Service identifier ("ghostai-backend")
+	Service   string `json:"service"`   // Service identifier ("promptops-backend")
 	Version   string `json:"version"`   // Semantic version of the backend
 	MaxTokens int    `json:"maxTokens"` // Configured per-response token limit
 }
@@ -36,7 +36,7 @@ type HealthResponse struct {
 //	{
 //	  "status":    "ok",
 //	  "timestamp": "2026-04-16T14:00:00Z",
-//	  "service":   "ghostai-backend",
+//	  "service":   "promptops-backend",
 //	  "version":   "0.1.0",
 //	  "maxTokens": 256
 //	}
@@ -45,7 +45,7 @@ func HealthHandler(maxTokens int) http.HandlerFunc {
 		resp := HealthResponse{
 			Status:    "ok",
 			Timestamp: time.Now().UTC().Format(time.RFC3339),
-			Service:   "ghostai-backend",
+			Service:   "promptops-backend",
 			Version:   "0.1.0",
 			MaxTokens: maxTokens,
 		}

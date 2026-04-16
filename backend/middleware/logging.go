@@ -1,4 +1,4 @@
-// Package middleware provides reusable HTTP middleware for the GhostAI Lite
+// Package middleware provides reusable HTTP middleware for the PromptOps Engine
 // backend, implementing cross-cutting concerns such as request logging and
 // CORS header injection.
 //

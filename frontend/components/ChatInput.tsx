@@ -1,5 +1,5 @@
 /**
- * @fileoverview ChatInput component for GhostAI Lite.
+ * @fileoverview ChatInput component for PromptOps Engine.
  *
  * Provides a styled text input and send button for composing messages.
  * Supports keyboard submission (Enter key) and is automatically disabled
@@ -76,7 +76,7 @@ export default function ChatInput({
         id="chat-input"
         type="text"
         className="chat-input"
-        placeholder="Message GhostAI..."
+        placeholder="Ask PromptOps Engine anything..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
