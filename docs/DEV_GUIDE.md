@@ -384,6 +384,7 @@ go run main.go
 
 # Terminal 3: Start frontend
 cd frontend
+cp .env.example .env.local  # or create manually with NEXT_PUBLIC_API_URL=http://localhost:8080
 npm install
 npm run dev
 # → http://localhost:3000
