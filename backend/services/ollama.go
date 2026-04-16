@@ -34,9 +34,16 @@ type OllamaClient struct {
 // Only the fields used by GhostAI Lite are included; Ollama accepts many
 // more options (temperature, top_k, etc.) that can be added later.
 type GenerateRequest struct {
-	Model  string `json:"model"`  // Model name, e.g. "tinyllama"
-	Prompt string `json:"prompt"` // The user's chat message
-	Stream bool   `json:"stream"` // Must be true for streaming responses
+	Model   string          `json:"model"`           // Model name, e.g. "tinyllama"
+	Prompt  string          `json:"prompt"`          // The user's chat message
+	Stream  bool            `json:"stream"`          // Must be true for streaming responses
+	Options *GenerateOptions `json:"options,omitempty"` // Optional generation parameters
+}
+
+// GenerateOptions holds optional Ollama generation parameters.
+// See https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values
+type GenerateOptions struct {
+	NumPredict int `json:"num_predict,omitempty"` // Max tokens to generate (0 = unlimited)
 }
 
 // GenerateChunk represents a single line of Ollama's NDJSON streaming
@@ -78,12 +85,17 @@ func NewOllamaClient(baseURL string) *OllamaClient {
 //
 // Errors from the HTTP request, non-200 status codes, or JSON parse
 // failures are returned immediately.
-func (c *OllamaClient) GenerateStream(model, prompt string, onChunk func(content string, done bool)) error {
+func (c *OllamaClient) GenerateStream(model, prompt string, maxTokens int, onChunk func(content string, done bool)) error {
 	// Build request payload
 	reqBody := GenerateRequest{
 		Model:  model,
 		Prompt: prompt,
 		Stream: true,
+	}
+
+	// Apply token limit if specified
+	if maxTokens > 0 {
+		reqBody.Options = &GenerateOptions{NumPredict: maxTokens}
 	}
 
 	body, err := json.Marshal(reqBody)

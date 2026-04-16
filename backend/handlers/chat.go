@@ -51,7 +51,7 @@ type ChatEvent struct {
 // Parameters:
 //   - ollamaClient: the Ollama HTTP client to delegate generation to
 //   - defaultModel: the fallback model name if not specified in the request
-func ChatHandler(ollamaClient *services.OllamaClient, defaultModel string) http.HandlerFunc {
+func ChatHandler(ollamaClient *services.OllamaClient, defaultModel string, maxTokens int) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// ── Parse request ──────────────────────────────────────────
 		var req ChatRequest
@@ -87,9 +87,9 @@ func ChatHandler(ollamaClient *services.OllamaClient, defaultModel string) http.
 		}
 
 		// ── Stream from Ollama ─────────────────────────────────────
-		log.Printf("[chat] Streaming with model=%s prompt=%q", model, req.Message)
+		log.Printf("[chat] Streaming with model=%s maxTokens=%d prompt=%q", model, maxTokens, req.Message)
 
-		err := ollamaClient.GenerateStream(model, req.Message, func(content string, done bool) {
+		err := ollamaClient.GenerateStream(model, req.Message, maxTokens, func(content string, done bool) {
 			event := ChatEvent{Content: content, Done: done}
 			data, _ := json.Marshal(event)
 

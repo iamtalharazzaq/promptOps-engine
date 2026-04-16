@@ -24,7 +24,7 @@
 import { useRef, useState, useEffect } from "react";
 import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
-import { streamChat } from "@/lib/api";
+import { streamChat, checkHealth, HealthResponse } from "@/lib/api";
 
 /** A single message in the conversation. */
 interface Message {
@@ -37,9 +37,17 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [health, setHealth] = useState<HealthResponse | null>(null);
 
   /** Ref to the bottom of the message list for auto-scroll. */
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // ── Fetch health data on mount ─────────────────────────────
+  useEffect(() => {
+    checkHealth()
+      .then(setHealth)
+      .catch((err) => console.error("Health check failed:", err));
+  }, []);
 
   // ── Auto-scroll on new messages or streaming updates ──────────
   useEffect(() => {
@@ -106,15 +114,20 @@ export default function Home() {
         <div className="header-content">
           <div className="logo-group">
             <div className="logo-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 10h.01" />
+                <path d="M15 10h.01" />
+                <path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z" />
               </svg>
             </div>
             <h1 className="logo-text">GhostAI <span className="logo-lite">Lite</span></h1>
           </div>
-          <div className="header-badge">v0.1.0</div>
+          <div className="header-badges">
+            {health && (
+              <div className="token-badge">Limit: {health.maxTokens} tokens</div>
+            )}
+            <div className="header-badge">{health?.version || "v0.1.0"}</div>
+          </div>
         </div>
       </header>
 

@@ -14,6 +14,7 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -26,6 +27,7 @@ type Config struct {
 	OllamaHost  string // Base URL of the Ollama API server
 	OllamaModel string // Default model name used for inference
 	FrontendURL string // Allowed CORS origin for the frontend
+	MaxTokens   int    // Max tokens per response (0 = unlimited)
 }
 
 // Load reads environment variables (falling back to .env if present) and
@@ -42,6 +44,7 @@ func Load() *Config {
 		OllamaHost:  getEnv("OLLAMA_HOST", "http://localhost:11434"),
 		OllamaModel: getEnv("OLLAMA_MODEL", "tinyllama"),
 		FrontendURL: getEnv("FRONTEND_URL", "http://localhost:3000"),
+		MaxTokens:   getEnvInt("MAX_TOKENS", 256),
 	}
 }
 
@@ -50,6 +53,19 @@ func Load() *Config {
 func getEnv(key, fallback string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
+	}
+	return fallback
+}
+
+// getEnvInt returns the integer value of the named environment variable,
+// or fallback if the variable is empty, unset, or not a valid integer.
+func getEnvInt(key string, fallback int) int {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	if i, err := strconv.Atoi(v); err == nil {
+		return i
 	}
 	return fallback
 }

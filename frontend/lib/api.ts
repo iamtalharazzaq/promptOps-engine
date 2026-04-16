@@ -35,6 +35,7 @@ export interface HealthResponse {
   timestamp: string;
   service: string;
   version: string;
+  maxTokens: number;
 }
 
 /**

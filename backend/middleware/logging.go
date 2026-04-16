@@ -28,6 +28,16 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.ResponseWriter.WriteHeader(code)
 }
 
+// Flush delegates to the underlying ResponseWriter's Flush method if it
+// implements http.Flusher. This is critical for SSE streaming endpoints
+// like /chat — without it, the type assertion `w.(http.Flusher)` in the
+// chat handler would fail because the wrapper hides the interface.
+func (rw *responseWriter) Flush() {
+	if f, ok := rw.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
 // Logger returns middleware that logs every incoming request with:
 //   - HTTP method and path
 //   - Response status code

@@ -40,6 +40,7 @@ func main() {
 	log.Printf("[main] GhostAI Lite Backend v0.1.0")
 	log.Printf("[main] Ollama host  : %s", cfg.OllamaHost)
 	log.Printf("[main] Ollama model : %s", cfg.OllamaModel)
+	log.Printf("[main] Max tokens   : %d", cfg.MaxTokens)
 	log.Printf("[main] Frontend URL : %s", cfg.FrontendURL)
 
 	// ── Initialise services ─────────────────────────────────────
@@ -53,8 +54,8 @@ func main() {
 	r.Use(middleware.Logger())
 
 	// Routes
-	r.Get("/health", handlers.HealthHandler())
-	r.Post("/chat", handlers.ChatHandler(ollamaClient, cfg.OllamaModel))
+	r.Get("/health", handlers.HealthHandler(cfg.MaxTokens))
+	r.Post("/chat", handlers.ChatHandler(ollamaClient, cfg.OllamaModel, cfg.MaxTokens))
 
 	// ── Start server ────────────────────────────────────────────
 	addr := fmt.Sprintf(":%s", cfg.Port)

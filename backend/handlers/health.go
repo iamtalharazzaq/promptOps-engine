@@ -23,6 +23,7 @@ type HealthResponse struct {
 	Timestamp string `json:"timestamp"` // ISO-8601 server time
 	Service   string `json:"service"`   // Service identifier ("ghostai-backend")
 	Version   string `json:"version"`   // Semantic version of the backend
+	MaxTokens int    `json:"maxTokens"` // Configured per-response token limit
 }
 
 // HealthHandler returns an http.HandlerFunc that responds to GET /health
@@ -36,15 +37,17 @@ type HealthResponse struct {
 //	  "status":    "ok",
 //	  "timestamp": "2026-04-16T14:00:00Z",
 //	  "service":   "ghostai-backend",
-//	  "version":   "0.1.0"
+//	  "version":   "0.1.0",
+//	  "maxTokens": 256
 //	}
-func HealthHandler() http.HandlerFunc {
+func HealthHandler(maxTokens int) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		resp := HealthResponse{
 			Status:    "ok",
 			Timestamp: time.Now().UTC().Format(time.RFC3339),
 			Service:   "ghostai-backend",
 			Version:   "0.1.0",
+			MaxTokens: maxTokens,
 		}
 
 		w.Header().Set("Content-Type", "application/json")

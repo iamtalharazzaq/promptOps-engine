@@ -1,117 +1,41 @@
 # 👻 GhostAI Lite
 
-> AI assistant with structured outputs, observability & full CI/CD
+> A premium, production-ready AI chat foundation built with Go and Next.js.
 
-A production-ready AI chat application built with **Go**, **Next.js**, **Ollama**, and **Docker**. Run LLMs locally with a premium ChatGPT-style interface.
+GhostAI Lite is an 8-week structured project designed to teach full-stack AI engineering, from SSE streaming and local inference (Ollama) to CI/CD and production deployment.
 
----
+![GhostAI Lite UI](file:///home/ubuntu/.gemini/antigravity/brain/4e83cdf3-7cca-49d6-9c30-3f7f98bc2fb8/final_ghostai_ui_state_1776335039842.png)
 
-## Tech Stack
+## 🚀 Week 1 Accomplishments
 
-| Layer      | Technology           | Purpose                        |
-| ---------- | -------------------- | ------------------------------ |
-| Frontend   | Next.js 14 + TypeScript | Chat UI with streaming render |
-| Backend    | Go + Chi router      | REST API with SSE streaming    |
-| AI Engine  | Ollama               | Local LLM inference            |
-| Database   | Supabase *(Week 3+)* | Conversation persistence       |
-| DevOps     | Docker + CircleCI    | Containerisation & CI/CD       |
+- **Monorepo Architecture**: Clean separation between `backend/` (Go) and `frontend/` (Next.js).
+- **Go SSE Streaming**: High-performance backend using Chi router and Server-Sent Events to stream LLM responses from Ollama.
+- **Premium UI/UX**: Emerald green & black "hacker" aesthetic with glassmorphism, scanline effects, and a custom ghost logo.
+- **Docker Orchestration**: Multi-stage Dockerfiles and a root `docker-compose.yml` for instant local development.
+- **Configurable Inference**: Integrated token limits (`num_predict`) and model selection (defaulting to `tinyllama`).
 
----
+## 🛠️ Tech Stack
 
-## Quick Start
+- **Backend**: Go (Chi, SSE, NDJSON)
+- **Frontend**: Next.js 14 (App Router, TS, Vanilla CSS)
+- **AI**: Ollama (local LLM inference)
+- **DevOps**: Docker, Docker Compose
+
+## 🚦 Quick Start
 
 ### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) & [Ollama](https://ollama.com/)
+- `ollama pull tinyllama`
 
-- **Go** 1.22+
-- **Node.js** 18+
-- **Ollama** ([install guide](https://ollama.ai))
-- **Docker** & Docker Compose *(optional, for containerised setup)*
-
-### Option 1: Docker Compose (recommended)
-
+### Spin up the stack
 ```bash
-# Clone and start all services
-git clone <your-repo-url> ghostAI-lite
-cd ghostAI-lite
 docker compose up --build
-
-# Pull a model (first time only)
-docker compose exec ollama ollama pull tinyllama
-
-# Open http://localhost:3000
 ```
+The UI will be available at `http://localhost:3000` and the API at `http://localhost:8080`.
 
-### Option 2: Run locally
-
-```bash
-# 1. Start Ollama
-ollama serve
-ollama pull tinyllama
-
-# 2. Start backend
-cd backend
-cp .env.example .env
-go run main.go
-
-# 3. Start frontend
-cd frontend
-npm install
-npm run dev
-
-# Open http://localhost:3000
-```
+## 📖 Documentation
+- [Developer Guide](docs/DEV_GUIDE.md) — Deep dive into architecture and features.
+- [Week 1 Walkthrough](.system_generated/walkthrough.md) — Final verification screenshots and feature recap.
 
 ---
-
-## Project Structure
-
-```
-ghostAI-lite/
-├── backend/               # Go REST API
-│   ├── main.go           # Entry point & route wiring
-│   ├── config/           # Environment configuration
-│   ├── handlers/         # HTTP handlers (health, chat)
-│   ├── middleware/        # CORS, request logging
-│   ├── services/         # Ollama client
-│   ├── Dockerfile        # Multi-stage build
-│   └── .env.example      # Env var template
-├── frontend/              # Next.js chat UI
-│   ├── app/              # App Router pages & layout
-│   ├── components/       # React components
-│   ├── lib/              # API client & utilities
-│   └── Dockerfile        # Multi-stage build
-├── docs/                  # Project documentation
-│   └── DEV_GUIDE.md      # Full developer guide
-├── docker-compose.yml     # Local dev orchestration
-└── .env.example           # Root env template
-```
-
----
-
-## API Endpoints
-
-| Method | Path      | Description                          |
-| ------ | --------- | ------------------------------------ |
-| GET    | `/health` | Liveness check — returns `{"status":"ok"}` |
-| POST   | `/chat`   | Stream an LLM response via SSE      |
-
-📖 See [`docs/DEV_GUIDE.md`](docs/DEV_GUIDE.md) for full API reference.
-
----
-
-## Roadmap
-
-- [x] **Week 1** — Monorepo, Go API, Ollama, Chat UI
-- [ ] **Week 2** — Supabase integration, conversation history
-- [ ] **Week 3** — Structured JSON output mode
-- [ ] **Week 4** — Observability (latency, tokens/sec, error tracking)
-- [ ] **Week 5** — CI/CD pipeline with CircleCI
-- [ ] **Week 6** — Deployment (Vercel + Railway)
-- [ ] **Week 7** — Polish & advanced features
-- [ ] **Week 8** — Terraform infrastructure
-
----
-
-## License
-
-MIT
+Built with 💚 and ghosts.

@@ -3,8 +3,8 @@
  *  GhostAI Lite — Global Stylesheet
  * ═══════════════════════════════════════════════════════════════
  *
- *  Design system: Premium dark-mode with glassmorphism.
- *  Colour palette: Deep indigo → purple gradient accents.
+ *  Design system: Premium dark-mode with green/black hacker aesthetic.
+ *  Colour palette: Deep black → emerald green gradient accents.
  *  Typography: Inter (loaded via next/font/google).
  *
  *  Sections:
@@ -13,34 +13,36 @@
  *    3. Layout (chat container, header, messages, input)
  *    4. Components (message bubbles, avatars, input bar)
  *    5. Empty State
- *    6. Animations (streaming cursor, fade-in)
- *    7. Scrollbar
+ *    6. Token Limit Badge
+ *    7. Animations (streaming cursor, fade-in)
+ *    8. Scrollbar
  * ═══════════════════════════════════════════════════════════════
  */
 
 /* ───────────────────────────────────────────────────────────────
-   1. Design Tokens
+   1. Design Tokens — Green & Black Theme
    ─────────────────────────────────────────────────────────────── */
 :root {
   /* Backgrounds */
-  --bg-primary:    #0a0a0f;
-  --bg-secondary:  #12121a;
-  --bg-tertiary:   #1a1a28;
-  --bg-glass:      rgba(22, 22, 35, 0.7);
+  --bg-primary:    #050a05;
+  --bg-secondary:  #0a140a;
+  --bg-tertiary:   #111e11;
+  --bg-glass:      rgba(10, 25, 10, 0.75);
 
-  /* Accents */
-  --accent-start:  #7c3aed;   /* violet-600 */
-  --accent-end:    #a855f7;   /* purple-500 */
-  --accent-glow:   rgba(124, 58, 237, 0.25);
+  /* Accents — Emerald Green */
+  --accent-start:  #10b981;   /* emerald-500 */
+  --accent-end:    #34d399;   /* emerald-400 */
+  --accent-glow:   rgba(16, 185, 129, 0.2);
+  --accent-bright: #4ade80;   /* green-400 */
 
   /* Text */
-  --text-primary:   #e4e4ef;
-  --text-secondary: #9494aa;
-  --text-muted:     #5a5a72;
+  --text-primary:   #d1fae5;
+  --text-secondary: #6ee7b7;
+  --text-muted:     #3a7a5a;
 
   /* Borders */
-  --border-subtle:  rgba(255, 255, 255, 0.06);
-  --border-accent:  rgba(124, 58, 237, 0.3);
+  --border-subtle:  rgba(16, 185, 129, 0.1);
+  --border-accent:  rgba(16, 185, 129, 0.35);
 
   /* Sizing */
   --max-width:      820px;
@@ -65,10 +67,38 @@
 html, body {
   height: 100%;
   background: var(--bg-primary);
+  background-image: 
+    radial-gradient(circle at 50% -20%, var(--bg-tertiary), transparent),
+    linear-gradient(rgba(16, 185, 129, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 4px;
   color: var(--text-primary);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  position: relative;
+  overflow: hidden;
+}
+
+body::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg, 
+    rgba(255, 0, 0, 0.06), 
+    rgba(0, 255, 0, 0.02), 
+    rgba(0, 0, 255, 0.06)
+  );
+  z-index: 100;
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+  opacity: 0.15;
 }
 
 /* ───────────────────────────────────────────────────────────────
@@ -88,10 +118,11 @@ html, body {
   top: 0;
   z-index: 50;
   padding: 16px 24px;
-  background: rgba(10, 10, 15, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-glass);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid var(--border-accent);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
 }
 
 .header-content {
@@ -114,7 +145,7 @@ html, body {
   height: 40px;
   border-radius: var(--radius-md);
   background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-  color: white;
+  color: #050a05;
   box-shadow: 0 4px 16px var(--accent-glow);
 }
 
@@ -128,6 +159,12 @@ html, body {
 .logo-lite {
   font-weight: 400;
   color: var(--accent-end);
+}
+
+.header-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .header-badge {
@@ -156,7 +193,7 @@ html, body {
 .input-area {
   padding: 16px 24px 24px;
   border-top: 1px solid var(--border-subtle);
-  background: rgba(10, 10, 15, 0.9);
+  background: rgba(5, 10, 5, 0.92);
   backdrop-filter: blur(12px);
 }
 
@@ -193,7 +230,7 @@ html, body {
 
 .avatar.user {
   background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-  color: white;
+  color: #050a05;
 }
 
 .avatar.assistant {
@@ -213,7 +250,8 @@ html, body {
 
 .message-bubble.user {
   background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-  color: white;
+  color: #050a05;
+  font-weight: 500;
   border-bottom-right-radius: var(--radius-sm);
 }
 
@@ -274,13 +312,14 @@ html, body {
   border-radius: var(--radius-md);
   border: none;
   background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-  color: white;
+  color: #050a05;
   cursor: pointer;
   transition: opacity 0.2s, transform 0.15s var(--ease-out);
 }
 
 .send-button:hover:not(:disabled) {
   transform: scale(1.05);
+  box-shadow: 0 0 16px var(--accent-glow);
 }
 
 .send-button:active:not(:disabled) {
@@ -358,20 +397,34 @@ html, body {
 
 .hint-chip:hover {
   background: var(--bg-tertiary);
-  color: var(--text-primary);
+  color: var(--accent-bright);
   border-color: var(--border-accent);
   box-shadow: 0 2px 12px var(--accent-glow);
   transform: translateY(-1px);
 }
 
 /* ───────────────────────────────────────────────────────────────
-   6. Animations
+   6. Token Limit Badge
+   ─────────────────────────────────────────────────────────────── */
+.token-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--accent-end);
+  border: 1px solid var(--border-accent);
+  letter-spacing: 0.03em;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   7. Animations
    ─────────────────────────────────────────────────────────────── */
 
 /* Blinking cursor shown during streaming */
 .streaming-cursor {
   animation: blink 0.7s infinite;
-  color: var(--accent-end);
+  color: var(--accent-bright);
   font-weight: 300;
   margin-left: 1px;
 }
@@ -394,7 +447,7 @@ html, body {
 }
 
 /* ───────────────────────────────────────────────────────────────
-   7. Scrollbar (Webkit + Firefox)
+   8. Scrollbar (Webkit + Firefox)
    ─────────────────────────────────────────────────────────────── */
 .messages-area {
   scrollbar-width: thin;
