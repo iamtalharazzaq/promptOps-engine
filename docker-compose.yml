@@ -1,0 +1,67 @@
+# ═══════════════════════════════════════════════════════════════
+#  GhostAI Lite — Docker Compose (Local Development)
+# ═══════════════════════════════════════════════════════════════
+#
+#  Orchestrates three services for local development:
+#
+#  ┌──────────┐     ┌──────────┐     ┌──────────┐
+#  │ frontend │────▶│ backend  │────▶│  ollama  │
+#  │ :3000    │     │ :8080    │     │ :11434   │
+#  └──────────┘     └──────────┘     └──────────┘
+#
+#  Usage:
+#    docker compose up --build        # build & start all services
+#    docker compose up -d             # start in background
+#    docker compose logs -f backend   # tail backend logs
+#    docker compose down              # stop all services
+#
+#  NOTE: On first run, pull a model:
+#    docker compose exec ollama ollama pull tinyllama
+# ═══════════════════════════════════════════════════════════════
+
+version: "3.9"
+
+services:
+  # ── Ollama (LLM inference server) ──────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ghostai-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama    # persist downloaded models
+    restart: unless-stopped
+
+  # ── Go Backend API ─────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ghostai-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_MODEL=tinyllama
+      - FRONTEND_URL=http://localhost:3000
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  # ── Next.js Frontend ───────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ghostai-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  ollama_data:

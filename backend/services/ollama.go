@@ -1,0 +1,129 @@
+// Package services contains business-logic services consumed by the HTTP
+// handlers. Each service encapsulates a single external dependency, keeping
+// the handler layer thin and testable.
+//
+// Currently provided services:
+//   - OllamaClient: streams LLM inference via the Ollama REST API
+package services
+
+import (
+	"bufio"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
+
+// -----------------------------------------------------------------------
+// Types
+// -----------------------------------------------------------------------
+
+// OllamaClient communicates with a running Ollama instance to generate
+// text completions. It wraps the Ollama /api/generate endpoint and
+// supports streaming NDJSON responses.
+type OllamaClient struct {
+	// BaseURL is the root URL of the Ollama server, e.g. "http://localhost:11434".
+	BaseURL string
+
+	// httpClient is the underlying HTTP client used for requests.
+	// A default client is used if nil.
+	httpClient *http.Client
+}
+
+// GenerateRequest is the payload sent to Ollama's /api/generate endpoint.
+// Only the fields used by GhostAI Lite are included; Ollama accepts many
+// more options (temperature, top_k, etc.) that can be added later.
+type GenerateRequest struct {
+	Model  string `json:"model"`  // Model name, e.g. "tinyllama"
+	Prompt string `json:"prompt"` // The user's chat message
+	Stream bool   `json:"stream"` // Must be true for streaming responses
+}
+
+// GenerateChunk represents a single line of Ollama's NDJSON streaming
+// response. Each chunk contains a fragment of the generated text and a
+// flag indicating whether generation is complete.
+type GenerateChunk struct {
+	Response string `json:"response"` // Text fragment (may be a single token)
+	Done     bool   `json:"done"`     // True on the final chunk
+}
+
+// -----------------------------------------------------------------------
+// Constructor
+// -----------------------------------------------------------------------
+
+// NewOllamaClient creates an OllamaClient configured to talk to the given
+// baseURL (e.g. "http://localhost:11434"). The client uses Go's default
+// HTTP transport, which supports keep-alive for connection reuse.
+func NewOllamaClient(baseURL string) *OllamaClient {
+	return &OllamaClient{
+		BaseURL:    baseURL,
+		httpClient: &http.Client{},
+	}
+}
+
+// -----------------------------------------------------------------------
+// Streaming Generation
+// -----------------------------------------------------------------------
+
+// GenerateStream sends a prompt to Ollama and invokes the callback for
+// every chunk of generated text. The callback receives the text fragment
+// and a boolean indicating whether generation is complete.
+//
+// Flow:
+//  1. POST to /api/generate with stream:true
+//  2. Read response body line-by-line (NDJSON)
+//  3. Parse each line into a GenerateChunk
+//  4. Call onChunk(chunk.Response, chunk.Done)
+//  5. Stop when chunk.Done == true
+//
+// Errors from the HTTP request, non-200 status codes, or JSON parse
+// failures are returned immediately.
+func (c *OllamaClient) GenerateStream(model, prompt string, onChunk func(content string, done bool)) error {
+	// Build request payload
+	reqBody := GenerateRequest{
+		Model:  model,
+		Prompt: prompt,
+		Stream: true,
+	}
+
+	body, err := json.Marshal(reqBody)
+	if err != nil {
+		return fmt.Errorf("marshal request: %w", err)
+	}
+
+	// Make the HTTP request
+	resp, err := c.httpClient.Post(
+		c.BaseURL+"/api/generate",
+		"application/json",
+		bytes.NewReader(body),
+	)
+	if err != nil {
+		return fmt.Errorf("ollama request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("ollama returned status %d", resp.StatusCode)
+	}
+
+	// Read streaming NDJSON response line by line
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		var chunk GenerateChunk
+		if err := json.Unmarshal(scanner.Bytes(), &chunk); err != nil {
+			return fmt.Errorf("parse chunk: %w", err)
+		}
+
+		onChunk(chunk.Response, chunk.Done)
+
+		if chunk.Done {
+			break
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("reading stream: %w", err)
+	}
+
+	return nil
+}
