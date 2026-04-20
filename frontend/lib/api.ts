@@ -24,6 +24,8 @@ if (!API_BASE) {
 export interface ChatEvent {
   content: string;
   done: boolean;
+  status?: string;
+  retryCount?: number;
 }
 
 /**
@@ -88,13 +90,18 @@ export async function streamChat(
     onDone: () => void;
     onError: (error: Error) => void;
   },
-  model?: string
+  model?: string,
+  schema?: string
 ): Promise<void> {
   try {
     const res = await fetch(`${API_BASE}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message, ...(model ? { model } : {}) }),
+      body: JSON.stringify({ 
+        message, 
+        ...(model ? { model } : {}),
+        ...(schema ? { schema } : {})
+      }),
     });
 
     if (!res.ok) {

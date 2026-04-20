@@ -60,6 +60,56 @@
   --ease-out:       cubic-bezier(0.16, 1, 0.3, 1);
   --transition-fast: 0.2s var(--ease-out);
   --transition-slow: 0.4s var(--ease-out);
+
+  /* Validation Status Colors */
+  --status-info:    #3b82f6;
+  --status-success: #10b981;
+  --status-warning: #f59e0b;
+  --status-error:   #ef4444;
+}
+
+/* ── Structured Toggle ────────────────────────────────────────── */
+.toggle-group {
+  display: flex;
+  align-items: center;
+}
+
+.structured-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.structured-toggle.active {
+  background: var(--accent-dim);
+  border-color: var(--accent-bright);
+  color: var(--accent-bright);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.structured-toggle:hover:not(:disabled) {
+  border-color: var(--accent-bright);
+  color: var(--text-secondary);
+}
+
+.structured-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-icon {
+  font-size: 0.8rem;
 }
 
 /* ───────────────────────────────────────────────────────────────
@@ -596,4 +646,68 @@ body::after {
 
 .messages-area::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
+}
+
+/* ── Validation Status Indicator ────────────────────────────── */
+.validation-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+}
+
+.status-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.status-text {
+  transition: color 0.3s ease;
+}
+
+/* Status variants */
+.status-indicator.valid { 
+  color: var(--status-success); 
+  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.1);
+}
+.status-indicator.invalid { 
+  color: var(--status-error); 
+  border-color: rgba(239, 68, 68, 0.3);
+}
+.status-indicator.validating { 
+  color: var(--status-info); 
+  border-color: rgba(59, 130, 246, 0.3);
+}
+.status-indicator.retrying { 
+  color: var(--status-warning); 
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+/* Pulse animation for validating state */
+.status-indicator.validating .status-icon,
+.status-indicator.retrying .status-icon {
+  animation: status-pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
 }

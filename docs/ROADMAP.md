@@ -9,7 +9,7 @@ This roadmap outlines the evolution of **PromptOps Engine** from a local LLM int
 | Week | Phase | Focus Area | Status |
 | :--- | :--- | :--- | :---: |
 | **01** | **Foundation** | Monorepo Setup, Go SSE, Next.js UI, Ollama | ✅ |
-| **02** | **Schema Guard** | JSON Schema Validation, Pydantic-like Go structs | ⏳ |
+| **02** | **Schema Guard** | JSON Schema Validation, Pydantic-like Go structs | ✅ |
 | **03** | **Observability** | Prometheus Metrics, Request Tracing (OpenTelemetry) | ⏳ |
 | **04** | **Deployment** | Multi-stage Docker optimization, CI/CD (GitHub Actions) | ⏳ |
 | **05** | **Identity** | JWT Auth, Session Persistence, User Profiles | ⏳ |
@@ -31,10 +31,10 @@ This roadmap outlines the evolution of **PromptOps Engine** from a local LLM int
 - [x] Local LLM integration via Ollama client
 
 ### Week 02: Schema Guard 🛡️
-- [ ] Implement JSON Schema validation for LLM responses
-- [ ] Automated retry logic for malformed outputs
-- [ ] Type-safe response parsing in Go services
-- [ ] UI indicators for validation status
+- [x] Implement JSON Schema validation for LLM responses
+- [x] Automated retry logic for malformed outputs
+- [x] Type-safe response parsing in Go services
+- [x] UI indicators for validation status
 
 ### Week 03: Observability & Metrics 📈
 - [ ] Expose Prometheus metrics endpoint (`/metrics`)

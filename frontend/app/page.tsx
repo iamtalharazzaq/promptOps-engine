@@ -25,12 +25,9 @@ import { useRef, useState, useEffect } from "react";
 import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
 import { streamChat, checkHealth, HealthResponse } from "@/lib/api";
+import { Message, updateMessagesWithEvent } from "@/lib/utils/chat";
 
-/** A single message in the conversation. */
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
+
 
 export default function Home() {
   // ── State ──────────────────────────────────────────────────────
@@ -39,6 +36,7 @@ export default function Home() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [selectedModel, setSelectedModel] = useState("tinyllama");
+  const [isStructuredMode, setIsStructuredMode] = useState(false);
 
   const availableModels = [
     { id: "tinyllama", name: "TinyLlama (Fast)" },
@@ -46,6 +44,19 @@ export default function Home() {
     { id: "mistral", name: "Mistral 7B" },
     { id: "phi3", name: "Phi-3 Mini" }
   ];
+
+  const sampleSchema = `{
+    "type": "object",
+    "properties": {
+      "name": { "type": "string" },
+      "role": { "type": "string" },
+      "skills": { 
+        "type": "array",
+        "items": { "type": "string" }
+      }
+    },
+    "required": ["name", "role", "skills"]
+  }`;
 
   /** Ref to the bottom of the message list for auto-scroll. */
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -83,18 +94,12 @@ export default function Home() {
     setInput("");
     setIsStreaming(true);
 
+    const schema = isStructuredMode ? sampleSchema : undefined;
+
     // Stream response from backend
     await streamChat(userMessage, {
       onChunk: (event) => {
-        setMessages((prev) => {
-          const updated = [...prev];
-          const lastIdx = updated.length - 1;
-          updated[lastIdx] = {
-            ...updated[lastIdx],
-            content: updated[lastIdx].content + event.content,
-          };
-          return updated;
-        });
+        setMessages((prev) => updateMessagesWithEvent(prev, event));
       },
       onDone: () => {
         setIsStreaming(false);
@@ -111,7 +116,7 @@ export default function Home() {
         });
         setIsStreaming(false);
       },
-    }, selectedModel);
+    }, selectedModel, schema);
   };
 
   // ── Render ────────────────────────────────────────────────────
@@ -132,6 +137,18 @@ export default function Home() {
           </div>
           
           <div className="header-controls">
+            <div className="toggle-group">
+              <button 
+                className={`structured-toggle ${isStructuredMode ? 'active' : ''}`}
+                onClick={() => setIsStructuredMode(!isStructuredMode)}
+                title="Structured Output Mode (Schema Guard)"
+                disabled={isStreaming}
+              >
+                <span className="toggle-icon">🛡️</span>
+                <span className="toggle-label">Schema Guard</span>
+              </button>
+            </div>
+
             <select 
               className="model-selector"
               value={selectedModel}
@@ -178,6 +195,8 @@ export default function Home() {
               key={i}
               role={msg.role}
               content={msg.content}
+              status={msg.status}
+              retryCount={msg.retryCount}
               isStreaming={isStreaming && i === messages.length - 1 && msg.role === "assistant"}
             />
           ))

@@ -46,6 +46,7 @@ func main() {
 
 	// ── Initialise services ─────────────────────────────────────
 	ollamaClient := services.NewOllamaClient(cfg.OllamaHost)
+	jsonValidator := services.NewJSONValidator()
 
 	// ── Build router ────────────────────────────────────────────
 	r := chi.NewRouter()
@@ -56,7 +57,7 @@ func main() {
 
 	// Routes
 	r.Get("/health", handlers.HealthHandler(cfg.MaxTokens))
-	r.Post("/chat", handlers.ChatHandler(ollamaClient, cfg.OllamaModel, cfg.MaxTokens))
+	r.Post("/chat", handlers.ChatHandler(ollamaClient, jsonValidator, cfg.OllamaModel, cfg.MaxTokens))
 
 	// ── Start server ────────────────────────────────────────────
 	addr := fmt.Sprintf(":%s", cfg.Port)

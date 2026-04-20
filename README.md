@@ -15,7 +15,7 @@
 **PromptOps Engine** is a high-performance, developer-centric platform designed to bridge the gap between local LLM inference and production-ready applications. It provides a robust orchestration layer with a focus on **Type Safety**, **Real-time Observability**, and **CI/CD Best Practices**.
 
 > [!IMPORTANT]
-> This project is currently in its foundation phase (**Week 01**). All core features are functional, but advanced orchestration and validation layers are under active development.
+> This project has completed the **Week 02** milestone (**Schema Guard**). Core orchestration, JSON validation, and automated retries are operational.
 
 ---
 
@@ -27,7 +27,7 @@
 | **Monorepo Workflow** | Unified Go backend and Next.js frontend management. | ✅ |
 | **Local Inference** | Native Ollama integration for zero-cost, private AI usage. | ✅ |
 | **Premium UI** | Stunning Emerald/Black "hacker" aesthetic with glassmorphism. | ✅ |
-| **Schema Validation** | Type-safe JSON output enforcement for industrial use. | ⏳ |
+| **Schema Validation** | Type-safe JSON output enforcement for industrial use. | ✅ |
 | **Metrics & Monitoring** | Native Prometheus metrics for token usage and latency. | ⏳ |
 | **CI/CD Driven** | Automated deployment pipelines and container security. | ⏳ |
 
@@ -60,9 +60,21 @@
 # Clone the repository
 git clone https://github.com/promptops/engine.git
 
-# Start the engine
+# Install dependencies and start (using Makefile)
+make install-deps
+make backend-run & make frontend-dev
+
+# Alternatively, using Docker
 docker compose up --build
 ```
+
+### Useful Commands (Makefile)
+| Command | Result |
+| :--- | :--- |
+| `make backend-test` | Run backend tests (Ginkgo) |
+| `make backend-run` | Start the Go API server |
+| `make frontend-dev` | Start the Next.js dev server |
+| `make install-deps` | Install all dependencies |
 
 ### Pulling a Model (Required for first run)
 ```bash

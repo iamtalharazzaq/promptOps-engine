@@ -37,6 +37,7 @@ type GenerateRequest struct {
 	Model   string          `json:"model"`           // Model name, e.g. "tinyllama"
 	Prompt  string          `json:"prompt"`          // The user's chat message
 	Stream  bool            `json:"stream"`          // Must be true for streaming responses
+	Format  string          `json:"format,omitempty"` // Set to "json" for structured output
 	Options *GenerateOptions `json:"options,omitempty"` // Optional generation parameters
 }
 
@@ -85,12 +86,13 @@ func NewOllamaClient(baseURL string) *OllamaClient {
 //
 // Errors from the HTTP request, non-200 status codes, or JSON parse
 // failures are returned immediately.
-func (c *OllamaClient) GenerateStream(model, prompt string, maxTokens int, onChunk func(content string, done bool)) error {
+func (c *OllamaClient) GenerateStream(model, prompt, format string, maxTokens int, onChunk func(content string, done bool)) error {
 	// Build request payload
 	reqBody := GenerateRequest{
 		Model:  model,
 		Prompt: prompt,
 		Stream: true,
+		Format: format,
 	}
 
 	// Apply token limit if specified
