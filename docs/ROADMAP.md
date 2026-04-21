@@ -10,7 +10,7 @@ This roadmap outlines the evolution of **PromptOps Engine** from a local LLM int
 | :--- | :--- | :--- | :---: |
 | **01** | **Foundation** | Monorepo Setup, Go SSE, Next.js UI, Ollama | ✅ |
 | **02** | **Schema Guard** | JSON Schema Validation, Pydantic-like Go structs | ✅ |
-| **03** | **Observability** | Prometheus Metrics, Request Tracing (OpenTelemetry) | ⏳ |
+| **03** | **Observability** | Prometheus Metrics, Request Tracing (OpenTelemetry) | 🏗️ |
 | **04** | **Deployment** | Multi-stage Docker optimization, CI/CD (GitHub Actions) | ⏳ |
 | **05** | **Identity** | JWT Auth, Session Persistence, User Profiles | ⏳ |
 | **06** | **Agents** | Tool Calling, Function Execution, ReAct Loops | ⏳ |
@@ -37,10 +37,10 @@ This roadmap outlines the evolution of **PromptOps Engine** from a local LLM int
 - [x] UI indicators for validation status
 
 ### Week 03: Observability & Metrics 📈
-- [ ] Expose Prometheus metrics endpoint (`/metrics`)
+- [x] Expose Prometheus metrics endpoint (`/metrics`)
 - [ ] Build Grafana dashboard for token usage & latency
-- [ ] Structured logging with request IDs
-- [ ] Trace correlation between Frontend and Backend
+- [x] Structured logging with Request IDs via `slog`
+- [ ] Trace correlation between Frontend and Backend (In Progress)
 
 ### Week 04: CI/CD & Orchestration ⚙️
 - [ ] Optimise Docker images (multi-stage builds)

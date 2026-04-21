@@ -22,8 +22,9 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/promptops/backend/config"
 	"github.com/promptops/backend/handlers"
@@ -31,6 +32,7 @@ import (
 	"github.com/promptops/backend/services"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -38,11 +40,16 @@ func main() {
 	cfg := config.Load()
 	cfg.Validate()
 
-	log.Printf("[main] PromptOps Engine Backend v0.1.0")
-	log.Printf("[main] Ollama host  : %s", cfg.OllamaHost)
-	log.Printf("[main] Ollama model : %s", cfg.OllamaModel)
-	log.Printf("[main] Max tokens   : %d", cfg.MaxTokens)
-	log.Printf("[main] Frontend URL : %s", cfg.FrontendURL)
+	// ── Configure Structured Logging ────────────────────────────
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
+	slog.Info("PromptOps Engine Backend starting",
+		"version", "v0.1.0",
+		"ollama_host", cfg.OllamaHost,
+		"ollama_model", cfg.OllamaModel,
+		"max_tokens", cfg.MaxTokens,
+	)
 
 	// ── Initialise services ─────────────────────────────────────
 	ollamaClient := services.NewOllamaClient(cfg.OllamaHost)
@@ -54,16 +61,19 @@ func main() {
 	// Global middleware (applied to ALL routes)
 	r.Use(middleware.CORS(cfg.FrontendURL))
 	r.Use(middleware.Logger())
+	r.Use(middleware.Metrics())
 
 	// Routes
+	r.Handle("/metrics", promhttp.Handler())
 	r.Get("/health", handlers.HealthHandler(cfg.MaxTokens))
 	r.Post("/chat", handlers.ChatHandler(ollamaClient, jsonValidator, cfg.OllamaModel, cfg.MaxTokens))
 
 	// ── Start server ────────────────────────────────────────────
 	addr := fmt.Sprintf(":%s", cfg.Port)
-	log.Printf("[main] Server listening on %s", addr)
+	slog.Info("Server listening", "addr", addr)
 
 	if err := http.ListenAndServe(addr, r); err != nil {
-		log.Fatalf("[main] Server failed: %v", err)
+		slog.Error("Server failed", "error", err)
+		os.Exit(1)
 	}
 }

@@ -39,13 +39,33 @@ Introduction of structured outputs and response validation to ensure LLM reliabi
 
 ---
 
+## 🟢 Week 03 - Observability & Metrics
+> **Status: 100% Complete** (April 21, 2026)
+
+### Description
+Introduction of a comprehensive observability stack to monitor LLM performance, token usage, and system reliability. Migrated to structured logging for better traceability in production environments.
+
+### Features Implemented
+- [x] **Prometheus Integration**: Custom metrics for token usage and request latency.
+- [x] **Structured Logging**: Switched to `slog` with JSON output and Request IDs.
+- [x] **Monitoring Stack**: Integrated Prometheus and Grafana into Docker Compose.
+- [x] **Grafana Dashboard**: Ready for pre-configured visualization (instructions added).
+- [x] **OpenTelemetry**: Trace correlation via Request IDs in logs and headers.
+
+### Implementation Details
+- **Metrics**: `github.com/prometheus/client_golang`, exposing `/metrics`.
+- **Logging**: `log/slog` (Go 1.21+ standard) with UUID correlation.
+- **Infrastructure**: Prometheus (v2.x), Grafana (v10.x).
+
+---
+
 ## ⏳ Weekly Progress Overview
 
 | Week | Implementation | Status |
 | :--- | :--- | :---: |
 | 01 | Foundation, Streaming, Rebranding | ✅ |
 | 02 | Schema Validation, Error Handling | ✅ |
-| 03 | Metrics, Observability, Dashboard | ⏳ |
+| 03 | Metrics, Observability, Dashboard | ✅ |
 | 04 | CI/CD, Container Optimisation | ⏳ |
 | 05 | Auth, Persistence, Databases | ⏳ |
 | 06 | Tool Calling, Agents, Logic | ⏳ |

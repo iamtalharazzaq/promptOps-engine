@@ -15,7 +15,7 @@
 **PromptOps Engine** is a high-performance, developer-centric platform designed to bridge the gap between local LLM inference and production-ready applications. It provides a robust orchestration layer with a focus on **Type Safety**, **Real-time Observability**, and **CI/CD Best Practices**.
 
 > [!IMPORTANT]
-> This project has completed the **Week 02** milestone (**Schema Guard**). Core orchestration, JSON validation, and automated retries are operational.
+> This project has completed the **Week 03** milestone (**Observability & Metrics**). Production-grade logging, metrics, and monitoring are fully operational.
 
 ---
 
@@ -28,7 +28,7 @@
 | **Local Inference** | Native Ollama integration for zero-cost, private AI usage. | ✅ |
 | **Premium UI** | Stunning Emerald/Black "hacker" aesthetic with glassmorphism. | ✅ |
 | **Schema Validation** | Type-safe JSON output enforcement for industrial use. | ✅ |
-| **Metrics & Monitoring** | Native Prometheus metrics for token usage and latency. | ⏳ |
+| **Metrics & Monitoring** | Native Prometheus metrics for token usage and latency. | ✅ |
 | **CI/CD Driven** | Automated deployment pipelines and container security. | ⏳ |
 
 ---
@@ -85,6 +85,7 @@ docker compose exec ollama ollama pull tinyllama
 
 ## 📄 Documentation
 - 📖 **[Developer Guide](docs/DEV_GUIDE.md)**
+- 🏗️ **[Architectural Deep Dive](docs/ARCHITECTURE.md)**
 - 🗺️ **[10-Week Roadmap](docs/ROADMAP.md)**
 - 📝 **[Weekly Progress Log](docs/WEEKLY_LOG.md)**
 

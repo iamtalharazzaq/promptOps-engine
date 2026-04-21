@@ -12,7 +12,7 @@
 package config
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"strconv"
 
@@ -36,7 +36,7 @@ type Config struct {
 func Load() *Config {
 	// Best-effort: ignore error if .env doesn't exist (e.g. in Docker)
 	if err := godotenv.Load(); err != nil {
-		log.Println("[config] No .env file found, using environment variables")
+		slog.Warn("No .env file found, using environment variables")
 	}
 
 	return &Config{
@@ -51,10 +51,12 @@ func Load() *Config {
 // Validate checks if mandatory configuration values are present.
 func (c *Config) Validate() {
 	if c.OllamaHost == "" {
-		log.Fatal("[config] ERROR: OLLAMA_HOST is required but not set in environment")
+		slog.Error("OLLAMA_HOST is required but not set in environment")
+		os.Exit(1)
 	}
 	if c.FrontendURL == "" {
-		log.Fatal("[config] ERROR: FRONTEND_URL is required but not set in environment")
+		slog.Error("FRONTEND_URL is required but not set in environment")
+		os.Exit(1)
 	}
 }
 

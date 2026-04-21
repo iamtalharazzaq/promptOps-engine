@@ -3,11 +3,12 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"strings"
 
+	"github.com/promptops/backend/middleware"
 	"github.com/promptops/backend/pkg/utils"
 	"github.com/promptops/backend/services"
 )
@@ -87,7 +88,12 @@ func ChatHandler(ollamaClient *services.OllamaClient, validator *services.JSONVa
 		}
 
 		// ── Schema Guard Loop ──────────────────────────────────────
-		log.Printf("[chat] Request with model=%s schema=%t", model, req.Schema != "")
+		requestID := middleware.GetRequestID(r.Context())
+		slog.Info("chat request initiated",
+			"request_id", requestID,
+			"model", model,
+			"has_schema", req.Schema != "",
+		)
 
 		format := ""
 		if req.Schema != "" {
@@ -108,7 +114,7 @@ func ChatHandler(ollamaClient *services.OllamaClient, validator *services.JSONVa
 				utils.WriteSSEEvent(w, flusher, ChatEvent{Status: "validating"})
 			}
 
-			err := ollamaClient.GenerateStream(model, currentPrompt, format, maxTokens, func(content string, done bool) {
+			err := ollamaClient.GenerateStream(r.Context(), model, currentPrompt, format, maxTokens, func(content string, done bool) {
 				if req.Schema != "" {
 					// In schema mode, we collect the response first to validate it
 					fullResponse.WriteString(content)
@@ -119,7 +125,7 @@ func ChatHandler(ollamaClient *services.OllamaClient, validator *services.JSONVa
 			})
 
 			if err != nil {
-				log.Printf("[chat] Ollama error: %v", err)
+				slog.Error("ollama generation failed", "request_id", requestID, "error", err)
 				utils.WriteSSEEvent(w, flusher, ChatEvent{Content: fmt.Sprintf("[error] %v", err), Done: true})
 				return
 			}
@@ -131,12 +137,12 @@ func ChatHandler(ollamaClient *services.OllamaClient, validator *services.JSONVa
 
 			// ── Validate JSON Response ──────────────────────────────
 			responseStr := fullResponse.String()
-			log.Printf("[chat] Validating response (len=%d)", len(responseStr))
+			slog.Info("validating response", "request_id", requestID, "len", len(responseStr))
 			
 			validationErr := validator.Validate(responseStr, req.Schema)
 			if validationErr == nil {
 				// SUCCESS: Valid JSON
-				log.Printf("[chat] Schema validation passed")
+				slog.Info("schema validation passed", "request_id", requestID)
 				utils.WriteSSEEvent(w, flusher, ChatEvent{
 					Content: responseStr,
 					Done:    true,
@@ -146,10 +152,10 @@ func ChatHandler(ollamaClient *services.OllamaClient, validator *services.JSONVa
 			}
 
 			// FAILURE: Invalid JSON
-			log.Printf("[chat] Validation failed: %v", validationErr)
+			slog.Warn("schema validation failed", "request_id", requestID, "error", validationErr)
 			retryCount++
 			if retryCount >= maxRetries {
-				log.Printf("[chat] Max retries exhausted")
+				slog.Error("max retries exhausted", "request_id", requestID)
 				utils.WriteSSEEvent(w, flusher, ChatEvent{
 					Content: responseStr, // Show the last malformed output anyway
 					Done:    true,

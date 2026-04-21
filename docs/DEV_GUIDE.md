@@ -1,448 +1,128 @@
-# PromptOps Engine — Developer Guide
+# 🛠️ PromptOps Engine — Developer Guide
 
-> Everything you need to know about the project: architecture, features, API reference, and development workflow.
-
----
-
-## Table of Contents
-
-1. [Architecture Overview](#architecture-overview)
-2. [Features Implemented](#features-implemented)
-3. [Backend Reference](#backend-reference)
-   - [Project Structure](#backend-project-structure)
-   - [Configuration](#configuration)
-   - [API Endpoints](#api-endpoints)
-   - [Middleware](#middleware)
-   - [Ollama Integration](#ollama-integration)
-4. [Frontend Reference](#frontend-reference)
-   - [Project Structure](#frontend-project-structure)
-   - [Components](#components)
-   - [API Client](#api-client)
-   - [Styling](#styling)
-5. [Docker Setup](#docker-setup)
-6. [Development Workflow](#development-workflow)
-7. [Troubleshooting](#troubleshooting)
+> A production-grade orchestration platform for local LLMs, focusing on reliability, observability, and premium aesthetics.
 
 ---
 
-## Architecture Overview
+## 🏗️ Architecture Overview
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Browser                              │
-│   ┌─────────────────────────────────────────────────┐       │
-│   │           Next.js Frontend (:3000)               │       │
-│   │   ┌────────────┐  ┌────────────┐  ┌──────────┐ │       │
-│   │   │  ChatPage   │  │ ChatInput  │  │  api.ts  │ │       │
-│   │   │  (page.tsx) │  │            │  │ (SSE)    │ │       │
-│   │   └─────┬──────┘  └──────┬─────┘  └────┬─────┘ │       │
-│   └─────────┼────────────────┼──────────────┼───────┘       │
-│             │                │              │               │
-└─────────────┼────────────────┼──────────────┼───────────────┘
-              │                │              │
-         ┌────▼────────────────▼──────────────▼─────┐
-         │         Go Backend (:8080)                │
-         │   ┌───────────┐  ┌────────────────────┐  │
-         │   │ /health   │  │ /chat (SSE stream) │  │
-         │   └───────────┘  └──────────┬─────────┘  │
-         │                             │             │
-         │   ┌─────────────────────────▼──────────┐  │
-         │   │    Ollama Service Client            │  │
-         │   │    (services/ollama.go)             │  │
-         │   └─────────────────────────┬──────────┘  │
-         └─────────────────────────────┼─────────────┘
-                                       │
-                          ┌────────────▼────────────┐
-                          │   Ollama Server (:11434) │
-                          │   (tinyllama / etc.)     │
-                          └─────────────────────────┘
+The PromptOps Engine is a monorepo consisting of a Go backend, a Next.js frontend, and a local Ollama inference server.
+
+> [!TIP]
+> For a more detailed technical explanation including sequence diagrams and data flow, see the **[Architectural Deep Dive](ARCHITECTURE.md)**.
+
+```mermaid
+graph TD
+    User([User]) <--> Frontend[Next.js Frontend :3000]
+    Frontend <--> Backend[Go Backend :8080]
+    Backend <--> Ollama[Ollama Server :11434]
+    
+    subgraph Observability
+        Prometheus[Prometheus :9090] -- scrapes --> Backend
+        Grafana[Grafana :3001] -- visualizes --> Prometheus
+    end
 ```
 
-### Request Flow (chat message)
+### Core Technologies
+- **Backend (Go 1.24)**: High-performance API using `chi` for routing and `slog` for structured logging.
+- **Frontend (Next.js 14)**: Premium interface with TypeScript and real-time SSE streaming.
+- **Observability**: Native Prometheus instrumentation (`client_golang`) and Request ID tracing (`uuid`).
+- **Reliability (Schema Guard)**: JSON Schema enforcement using `gojsonschema`.
+- **Inference**: Orchestration of local LLMs via the Ollama REST API.
 
-1. User types a message in the **ChatInput** component
-2. `page.tsx` calls `streamChat()` from `lib/api.ts`
-3. `api.ts` sends `POST /chat` with `{ "message": "..." }` to the Go backend
-4. **ChatHandler** in `handlers/chat.go` receives the request
-5. Handler calls `OllamaClient.GenerateStream()` in `services/ollama.go`
-6. Ollama service POSTs to `http://ollama:11434/api/generate` with `stream: true`
-7. Ollama returns NDJSON lines: `{"response":"token","done":false}`
-8. Each token is converted to an SSE event: `data: {"content":"token","done":false}\n\n`
-9. `api.ts` reads the SSE stream via `ReadableStream` and calls `onChunk`
-10. `page.tsx` appends each chunk to the assistant message, rendering word-by-word
+> [!NOTE]
+> For a detailed list of packages and the rationale behind their selection, see the **[Dependency Rationale](ARCHITECTURE.md#dependency--service-rationale)** in the architecture guide.
 
 ---
 
-## Features Implemented
+## 📂 Project Structure
 
-### 1. Premium AI Interface
-- **Hacker Aesthetic**: A consistent Emerald Green and Black color palette.
-- **Glassmorphism**: Translucent headers and message bubbles with deep blur effects.
-- **Visual Polish**: Custom Ghost SVG logo, CRT-style scanline background, and radial neon gradients.
-- **Hint Chips**: One-click prompt suggestions to get users started instantly.
-
-### 2. High-Performance Streaming
-- **SSE (Server-Sent Events)**: Backend pushes tokens to the frontend as they are generated by Ollama.
-- **Low Latency**: Lightweight Go backend with zero-buffer streaming headers (`X-Accel-Buffering: no`).
-- **Token Control**: Enforced and displayed token limits (`maxTokens`) configured via environment variables.
-
-### ✅ Week 1 — Foundation
-
-| Feature                   | Status | Description                                              |
-| ------------------------- | ------ | -------------------------------------------------------- |
-| Monorepo structure        | ✅     | `backend/` + `frontend/` + `docs/` + root compose       |
-| Go REST API               | ✅     | Chi router with middleware stack                         |
-| `/health` endpoint        | ✅     | Returns `{ status, timestamp, service, version }`       |
-| `/chat` SSE endpoint      | ✅     | Streams tokens from Ollama as Server-Sent Events        |
-| Ollama integration        | ✅     | HTTP client for `/api/generate` with NDJSON streaming   |
-| CORS middleware           | ✅     | Allows frontend origin with SSE-compatible headers      |
-| Request logging           | ✅     | Logs method, path, status, latency for every request    |
-| Next.js chat UI           | ✅     | ChatGPT-style dark interface with glassmorphism         |
-| Streaming render          | ✅     | Word-by-word token display with blinking cursor         |
-| Auto-scroll               | ✅     | Messages area scrolls to bottom on new content          |
-| Empty state               | ✅     | Welcome screen with prompt suggestion chips             |
-| Docker multi-stage builds | ✅     | Optimised Dockerfiles for both services                 |
-| Docker Compose            | ✅     | Three-service local dev stack                           |
-| Environment config        | ✅     | `.env` support with sensible defaults                   |
-| Code documentation        | ✅     | Package, function, and component-level doc comments     |
+```bash
+.
+├── backend/                # Go API Server
+│   ├── cmd/                # Entry points (if refactored)
+│   ├── config/             # Environment configuration
+│   ├── handlers/           # HTTP handlers (chat, health)
+│   ├── middleware/         # CORS, Logging, Metrics, UUID
+│   ├── pkg/                # Internal packages
+│   │   ├── metrics/        # Prometheus metrics definitions
+│   │   └── utils/          # Generic utilities (SSE helper)
+│   └── services/           # Service layer (Ollama, Validator)
+├── frontend/               # Next.js Web App
+│   ├── app/                # App Router (page.tsx, layout.tsx)
+│   ├── components/         # React components (ChatMessage, ChatInput)
+│   ├── lib/                # API client and logic
+│   └── public/             # Static assets
+├── monitoring/             # Monitoring config (Prometheus/Grafana)
+└── docs/                   # Documentation and Roadmap
+```
 
 ---
 
-## Backend Reference
+## 🛡️ Schema Guard (Week 2)
 
-### Backend Project Structure
+PromptOps Engine ensures LLM reliability through **Structured Output Validation**.
 
-```
-backend/
-├── main.go               # Entry point: loads config, wires routes, starts server
-├── config/
-│   └── config.go          # Reads env vars with defaults, exposes Config struct
-├── handlers/
-│   ├── health.go          # GET /health — liveness/readiness probe
-│   └── chat.go            # POST /chat — SSE streaming from Ollama
-├── middleware/
-│   ├── cors.go            # CORS header injection + preflight handling
-│   └── logging.go         # Request logging (method, path, status, latency)
-├── services/
-│   └── ollama.go          # Ollama HTTP client with NDJSON stream parsing
-├── Dockerfile             # Multi-stage build (golang:1.22-alpine → alpine:3.19)
-├── .env.example           # Environment variable template
-├── go.mod                 # Go module definition
-└── go.sum                 # Dependency checksums
-```
+1. **Schema Definition**: The frontend provides a JSON Schema.
+2. **Strict Validation**: The backend validates the LLM's response using `gojsonschema`.
+3. **Automated Retries**: If validation fails, the engine automatically retries (up to 3 times) with a correction prompt.
+4. **Real-time Feedback**: UI badges show "Validating", "Valid", "Invalid", or "Retrying".
 
-### Configuration
+---
 
-All configuration is via environment variables (with `.env` file support):
+## 📉 Observability & Tracing (Week 3)
 
-| Variable       | Default                    | Description                        |
-| -------------- | -------------------------- | ---------------------------------- |
-| `PORT`         | `8080`                     | HTTP server listen port            |
-| `OLLAMA_HOST`  | `http://localhost:11434`   | Ollama API base URL                |
-| `OLLAMA_MODEL` | `tinyllama`                | Default model for inference        |
-| `FRONTEND_URL` | `http://localhost:3000`    | Allowed CORS origin                |
-
-### API Endpoints
-
-#### `GET /health`
-
-**Purpose:** Liveness/readiness probe for Docker health checks, load balancers, and the frontend connectivity indicator.
-
-**Response** (`200 OK`):
+### Structured Logging
+Every request is logged as JSON via `slog` and tagged with a unique `request_id` (UUIDv4).
 ```json
 {
-  "status": "ok",
-  "timestamp": "2026-04-16T09:14:00Z",
-  "service": "promptops-backend",
-  "version": "0.1.0"
+  "time": "2026-04-21T18:00:00Z",
+  "level": "INFO",
+  "msg": "request completed",
+  "request_id": "8da45474-97c2-469e-91c1-1087aa2a4139",
+  "method": "POST",
+  "path": "/chat",
+  "status": 200,
+  "latency": "12.34ms"
 }
 ```
 
-**Usage:**
-```bash
-curl http://localhost:8080/health
-```
+### Metrics Endpoint
+Exposed at `:8080/metrics` for Prometheus.
+- `promptops_http_requests_total`: Request counts by status/method.
+- `promptops_ollama_token_usage_total`: Input/Output token counts.
+- `promptops_ollama_request_duration_seconds`: LLM response time latency.
 
 ---
 
-#### `POST /chat`
+## 🚀 Development Workflow
 
-**Purpose:** Streams an LLM response from Ollama as Server-Sent Events. Each event contains a text fragment (usually a single token).
+### Prerequisites
+- **Docker & Docker Compose**
+- **Go 1.24** (optional for local run)
+- **Node.js 20** (optional for local run)
 
-**Request body:**
-```json
-{
-  "message": "Explain Go concurrency in simple terms",
-  "model": "tinyllama"     // optional — defaults to OLLAMA_MODEL
-}
-```
-
-**Response** (`200 OK`, `Content-Type: text/event-stream`):
-```
-data: {"content":"Go","done":false}
-
-data: {"content":" uses","done":false}
-
-data: {"content":" goroutines","done":false}
-
-data: {"content":"","done":true}
-
-```
-
-**Error handling:**
-- `400` — missing or invalid JSON body, empty message
-- `502` — Ollama unreachable (error message sent as final SSE event)
-
-**Usage:**
+### Quick Start (Docker)
 ```bash
-curl -N -X POST http://localhost:8080/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message":"Say hello"}'
-```
-
-### Middleware
-
-#### CORS (`middleware/cors.go`)
-
-Injects CORS headers on every response to allow cross-origin requests from the frontend:
-
-- `Access-Control-Allow-Origin` — set to `FRONTEND_URL` (not `*`, for security)
-- `Access-Control-Allow-Methods` — `POST, GET, OPTIONS`
-- `Access-Control-Allow-Headers` — `Content-Type`
-- Preflight `OPTIONS` requests are short-circuited with `204 No Content`
-
-#### Request Logger (`middleware/logging.go`)
-
-Logs every request with:
-```
-[HTTP] POST /chat → 200 (12.34ms)
-```
-
-Uses a custom `responseWriter` wrapper to capture the HTTP status code without modifying the response.
-
-### Ollama Integration
-
-The `OllamaClient` in `services/ollama.go` communicates with Ollama's REST API:
-
-1. **Endpoint:** `POST {OLLAMA_HOST}/api/generate`
-2. **Payload:** `{ model, prompt, stream: true }`
-3. **Response:** NDJSON (one JSON object per line)
-4. **Parsing:** `bufio.Scanner` reads line-by-line, `json.Unmarshal` per line
-5. **Callback:** Each parsed chunk is delivered via `onChunk(content, done)`
-
----
-
-## Frontend Reference
-
-### Frontend Project Structure
-
-```
-frontend/
-├── app/
-│   ├── layout.tsx         # Root layout: Inter font, dark theme, SEO meta
-│   ├── page.tsx           # Main chat page: message state, streaming, auto-scroll
-│   └── globals.css        # Design system: dark mode, glassmorphism, animations
-├── components/
-│   ├── ChatMessage.tsx    # Message bubble (user / assistant) with streaming cursor
-│   └── ChatInput.tsx      # Text input + send button with keyboard support
-├── lib/
-│   └── api.ts             # streamChat() SSE client + checkHealth()
-├── Dockerfile             # Three-stage build (deps → build → runtime)
-└── package.json           # Dependencies and scripts
-```
-
-### Components
-
-#### `ChatMessage` (`components/ChatMessage.tsx`)
-
-Renders a single conversation bubble.
-
-| Prop          | Type                      | Description                                  |
-| ------------- | ------------------------- | -------------------------------------------- |
-| `role`        | `"user" \| "assistant"`   | Determines alignment and styling             |
-| `content`     | `string`                  | Message text                                 |
-| `isStreaming`  | `boolean` (default false) | Shows a blinking cursor when true            |
-
-- **User messages:** Right-aligned, gradient purple background
-- **Assistant messages:** Left-aligned, glassmorphism background with subtle border
-
-#### `ChatInput` (`components/ChatInput.tsx`)
-
-Text input with send button. Controlled component.
-
-| Prop       | Type                      | Description                           |
-| ---------- | ------------------------- | ------------------------------------- |
-| `value`    | `string`                  | Current input text (controlled)       |
-| `onChange`  | `(value: string) => void` | Called on input change                |
-| `onSend`   | `() => void`              | Called on Enter or button click       |
-| `disabled` | `boolean` (default false) | Disables input during streaming       |
-
-Features:
-- Enter key sends (Shift+Enter reserved for future multiline)
-- Send button has scale animation on hover/click
-- Visual disabled state during streaming
-
-### API Client
-
-#### `streamChat()` (`lib/api.ts`)
-
-```typescript
-streamChat(message: string, handlers: {
-  onChunk: (event: ChatEvent) => void;
-  onDone: () => void;
-  onError: (error: Error) => void;
-}, model?: string): Promise<void>
-```
-
-- Uses `fetch()` with `ReadableStream` to consume SSE
-- Parses `data: {...}\n\n` lines and delivers `ChatEvent` objects
-- Handles connection errors and malformed lines gracefully
-
-#### `checkHealth()` (`lib/api.ts`)
-
-```typescript
-checkHealth(): Promise<HealthResponse>
-```
-
-Simple GET to `/health`. Returns parsed JSON. Throws on non-200 status.
-
-### Styling
-
-The design system in `globals.css` follows a CSS custom properties approach:
-
-| Token               | Value                        | Used for              |
-| -------------------- | ---------------------------- | --------------------- |
-| `--bg-primary`       | `#0a0a0f`                    | Page background       |
-| `--bg-secondary`     | `#12121a`                    | Cards, input          |
-| `--bg-glass`         | `rgba(22, 22, 35, 0.7)`     | Glassmorphism bubbles |
-| `--accent-start`     | `#7c3aed` (violet)           | Gradient start        |
-| `--accent-end`       | `#a855f7` (purple)           | Gradient end          |
-| `--text-primary`     | `#e4e4ef`                    | Main text             |
-| `--text-secondary`   | `#9494aa`                    | Metadata, hints       |
-
-Key visual features:
-- **Glassmorphism:** `backdrop-filter: blur()` on message bubbles and header
-- **Gradient accents:** User bubbles and CTAs use violet→purple gradient
-- **Streaming cursor:** Blinking `▌` character with CSS `@keyframes blink`
-- **Fade-in animation:** New messages slide up with `@keyframes fadeSlideIn`
-
----
-
-## Docker Setup
-
-### Services
-
-| Service    | Image               | Port   | Purpose                          |
-| ---------- | -------------------- | ------ | -------------------------------- |
-| `ollama`   | `ollama/ollama`      | 11434  | LLM inference server             |
-| `backend`  | Custom (Go)          | 8080   | REST API + SSE streaming         |
-| `frontend` | Custom (Next.js)     | 3000   | Chat UI                          |
-
-### Build & Run
-
-```bash
-# Build and start all services
+# 1. Start the full stack
 docker compose up --build
 
-# First time: pull a model
+# 2. Pull the default model
 docker compose exec ollama ollama pull tinyllama
 
-# View logs
-docker compose logs -f backend
-
-# Stop everything
-docker compose down
+# 3. Access the UI
+# http://localhost:3000
 ```
 
-### Multi-Stage Build Details
-
-**Backend Dockerfile:**
-1. `golang:1.22-alpine` — compiles static binary with `CGO_ENABLED=0`
-2. `alpine:3.19` — runs the ~15MB binary (no Go runtime needed)
-
-**Frontend Dockerfile:**
-1. `node:20-alpine` (deps) — installs `node_modules` via `npm ci`
-2. `node:20-alpine` (builder) — runs `next build`
-3. `node:20-alpine` (runner) — serves with `next start` in production mode
+### Makefile Commands
+- `make install-deps`: Install dev dependencies.
+- `make backend-run`: Run backend locally.
+- `make frontend-dev`: Run frontend locally.
+- `make backend-test`: Run BDD test suite (Ginkgo).
 
 ---
 
-## Development Workflow
-
-### Running locally (without Docker)
-
-```bash
-# Terminal 1: Start Ollama
-ollama serve
-ollama pull tinyllama
-
-# Terminal 2: Start backend
-cd backend
-cp .env.example .env
-go run main.go
-# → Server listening on :8080
-
-# Terminal 3: Start frontend
-cd frontend
-cp .env.example .env.local  # or create manually with NEXT_PUBLIC_API_URL=http://localhost:8080
-npm install
-npm run dev
-# → http://localhost:3000
-```
-
-### Testing endpoints
-
-```bash
-# Health check
-curl -s http://localhost:8080/health | jq
-
-# Chat (streaming)
-curl -N -X POST http://localhost:8080/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message":"Hello, world!"}'
-```
-
-### Adding new endpoints
-
-1. Create a handler in `backend/handlers/`
-2. Register the route in `main.go`
-3. If the handler needs an external service, create a client in `backend/services/`
-4. Add the frontend API function in `frontend/lib/api.ts`
-
----
-
-## Troubleshooting
-
-### "Ollama request failed: connection refused"
-
-Ollama is not running. Start it:
-```bash
-ollama serve
-```
-
-Or if using Docker:
-```bash
-docker compose up ollama
-```
-
-### "CORS error in browser console"
-
-Check that `FRONTEND_URL` in `.env` matches the URL you're accessing the frontend from (e.g. `http://localhost:3000`).
-
-### "Model not found" from Ollama
-
-Pull the model:
-```bash
-ollama pull tinyllama
-```
-
-### Chat input is disabled / nothing happens
-
-The frontend may not be able to reach the backend. Check:
-1. Backend is running on port 8080
-2. `NEXT_PUBLIC_API_URL` is set correctly (default: `http://localhost:8080`)
-3. No browser extensions blocking requests
-
-### Docker build fails
-
-Ensure Docker has enough memory (at least 4GB recommended for building Go and Next.js).
+## ✨ Design Principles
+- **Aesthetics First**: Every component must use glassmorphism and emerald/hacker theme.
+- **Zero Placeholder**: No generic placeholders; use generated assets or meaningful defaults.
+- **Type Safety**: End-to-end TypeScript and Go struct validation.

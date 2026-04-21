@@ -9,9 +9,13 @@ package services
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
+
+	"github.com/promptops/backend/pkg/metrics"
 )
 
 // -----------------------------------------------------------------------
@@ -51,8 +55,10 @@ type GenerateOptions struct {
 // response. Each chunk contains a fragment of the generated text and a
 // flag indicating whether generation is complete.
 type GenerateChunk struct {
-	Response string `json:"response"` // Text fragment (may be a single token)
-	Done     bool   `json:"done"`     // True on the final chunk
+	Response      string `json:"response"` // Text fragment (may be a single token)
+	Done          bool   `json:"done"`     // True on the final chunk
+	PromptEvalCount int    `json:"prompt_eval_count"` // Number of tokens in prompt
+	EvalCount       int    `json:"eval_count"`        // Number of tokens in response
 }
 
 // -----------------------------------------------------------------------
@@ -86,7 +92,10 @@ func NewOllamaClient(baseURL string) *OllamaClient {
 //
 // Errors from the HTTP request, non-200 status codes, or JSON parse
 // failures are returned immediately.
-func (c *OllamaClient) GenerateStream(model, prompt, format string, maxTokens int, onChunk func(content string, done bool)) error {
+// GenerateStream sends a prompt to Ollama and invokes the callback for
+// every chunk of generated text.
+func (c *OllamaClient) GenerateStream(ctx context.Context, model, prompt, format string, maxTokens int, onChunk func(content string, done bool)) error {
+	start := time.Now()
 	// Build request payload
 	reqBody := GenerateRequest{
 		Model:  model,
@@ -105,12 +114,14 @@ func (c *OllamaClient) GenerateStream(model, prompt, format string, maxTokens in
 		return fmt.Errorf("marshal request: %w", err)
 	}
 
-	// Make the HTTP request
-	resp, err := c.httpClient.Post(
-		c.BaseURL+"/api/generate",
-		"application/json",
-		bytes.NewReader(body),
-	)
+	// Make the HTTP request with context
+	req, err := http.NewRequestWithContext(ctx, "POST", c.BaseURL+"/api/generate", bytes.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("ollama request failed: %w", err)
 	}
@@ -131,6 +142,16 @@ func (c *OllamaClient) GenerateStream(model, prompt, format string, maxTokens in
 		onChunk(chunk.Response, chunk.Done)
 
 		if chunk.Done {
+			// Record metrics on completion
+			duration := time.Since(start).Seconds()
+			metrics.OllamaRequestDuration.WithLabelValues(model).Observe(duration)
+
+			if chunk.PromptEvalCount > 0 {
+				metrics.OllamaTokenUsageTotal.WithLabelValues(model, "prompt").Add(float64(chunk.PromptEvalCount))
+			}
+			if chunk.EvalCount > 0 {
+				metrics.OllamaTokenUsageTotal.WithLabelValues(model, "completion").Add(float64(chunk.EvalCount))
+			}
 			break
 		}
 	}
