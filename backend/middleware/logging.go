@@ -22,6 +22,10 @@ type contextKey string
 const (
 	// RequestIDKey is the key used to store the request ID in the context.
 	RequestIDKey contextKey = "request_id"
+	// UserIDKey is the key used to store the user ID in the context.
+	UserIDKey contextKey = "user_id"
+	// UserEmailKey is the key used to store the user email in the context.
+	UserEmailKey contextKey = "user_email"
 )
 
 // responseWriter is a thin wrapper around http.ResponseWriter that captures

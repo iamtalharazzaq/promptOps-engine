@@ -16,6 +16,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/context/AuthContext";
 
 /** Inter font with Latin subset for clean, modern typography. */
 const inter = Inter({ subsets: ["latin"] });
@@ -44,7 +45,11 @@ export default function RootLayout({
       <head>
         <meta name="theme-color" content="#0a0a0f" />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   );
 }

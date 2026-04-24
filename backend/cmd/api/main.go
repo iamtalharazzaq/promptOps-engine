@@ -21,6 +21,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -29,6 +30,7 @@ import (
 	"github.com/promptops/backend/config"
 	"github.com/promptops/backend/handlers"
 	"github.com/promptops/backend/middleware"
+	"github.com/promptops/backend/pkg/db"
 	"github.com/promptops/backend/services"
 
 	"github.com/go-chi/chi/v5"
@@ -51,6 +53,13 @@ func main() {
 		"max_tokens", cfg.MaxTokens,
 	)
 
+	// ── Initialise database ─────────────────────────────────────
+	database, err := db.Init(context.Background(), cfg.DBURL)
+	if err != nil {
+		slog.Error("Database initialisation failed", "error", err)
+		os.Exit(1)
+	}
+
 	// ── Initialise services ─────────────────────────────────────
 	ollamaClient := services.NewOllamaClient(cfg.OllamaHost)
 	jsonValidator := services.NewJSONValidator()
@@ -66,7 +75,17 @@ func main() {
 	// Routes
 	r.Handle("/metrics", promhttp.Handler())
 	r.Get("/health", handlers.HealthHandler(cfg.MaxTokens))
-	r.Post("/chat", handlers.ChatHandler(ollamaClient, jsonValidator, cfg.OllamaModel, cfg.MaxTokens))
+
+	// Auth routes
+	r.Post("/auth/register", handlers.RegisterHandler(database, cfg.JWTSecret))
+	r.Post("/auth/login", handlers.LoginHandler(database, cfg.JWTSecret))
+
+	// Chat routes (Protected)
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.RequireAuth(cfg.JWTSecret))
+		r.Get("/chats", handlers.GetChatsHandler(database))
+		r.Post("/chat", handlers.ChatHandler(database, ollamaClient, jsonValidator, cfg.OllamaModel, cfg.MaxTokens))
+	})
 
 	// ── Start server ────────────────────────────────────────────
 	addr := fmt.Sprintf(":%s", cfg.Port)

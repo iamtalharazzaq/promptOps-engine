@@ -25,7 +25,7 @@ backend-test:
 
 backend-run:
 	@echo "Starting backend..."
-	cd backend && go run main.go
+	cd backend && go run cmd/api/main.go
 
 frontend-dev:
 	@echo "Starting frontend..."

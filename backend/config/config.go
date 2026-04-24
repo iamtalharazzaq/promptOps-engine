@@ -28,6 +28,8 @@ type Config struct {
 	OllamaModel string // Default model name used for inference
 	FrontendURL string // Allowed CORS origin for the frontend
 	MaxTokens   int    // Max tokens per response (0 = unlimited)
+	DBURL       string // Supabase / PostgreSQL connection string
+	JWTSecret   string // Secret key for signing JWT tokens
 }
 
 // Load reads environment variables (falling back to .env if present) and
@@ -45,6 +47,8 @@ func Load() *Config {
 		OllamaModel: getEnv("OLLAMA_MODEL", "tinyllama"),
 		FrontendURL: getEnv("FRONTEND_URL", ""), // Require explicit config
 		MaxTokens:   getEnvInt("MAX_TOKENS", 256),
+		DBURL:       getEnv("DB_URL", ""),     // Require explicit config for Week 5
+		JWTSecret:   getEnv("JWT_SECRET", "change-me-hackery-secret"),
 	}
 }
 
@@ -56,6 +60,10 @@ func (c *Config) Validate() {
 	}
 	if c.FrontendURL == "" {
 		slog.Error("FRONTEND_URL is required but not set in environment")
+		os.Exit(1)
+	}
+	if c.DBURL == "" {
+		slog.Error("DB_URL is required for Supabase persistence")
 		os.Exit(1)
 	}
 }

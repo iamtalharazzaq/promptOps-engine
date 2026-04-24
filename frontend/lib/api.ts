@@ -26,6 +26,7 @@ export interface ChatEvent {
   done: boolean;
   status?: string;
   retryCount?: number;
+  chat_id?: string;
 }
 
 /**
@@ -78,10 +79,58 @@ export async function checkHealth(): Promise<HealthResponse> {
  *   onError: (e)  => showError(e.message),
  * });
  * ```
- *
- * @param message  - The user's message to send
- * @param handlers - Callback functions for stream events
- * @param model    - Optional model override (defaults to backend config)
+ * */
+export interface ChatHistoryItem {
+  id: string;
+  title: string;
+  updated_at: string;
+}
+
+/**
+ * Get history of chat sessions for the authenticated user.
+ */
+export async function getHistory(token: string): Promise<ChatHistoryItem[]> {
+  const res = await fetch(`${API_BASE}/chats`, {
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+  if (!res.ok) throw new Error("Failed to fetch history");
+  return res.json();
+}
+
+/**
+ * Register a new user.
+ */
+export async function register(email: string, password: string): Promise<{ token: string }> {
+  const res = await fetch(`${API_BASE}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || "Registration failed");
+  }
+  return res.json();
+}
+
+/**
+ * Login an existing user.
+ */
+export async function login(email: string, password: string): Promise<{ token: string }> {
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || "Login failed");
+  }
+  return res.json();
+}
+
+/**
+ * Stream a chat response from the backend using Server-Sent Events.
  */
 export async function streamChat(
   message: string,
@@ -90,19 +139,30 @@ export async function streamChat(
     onDone: () => void;
     onError: (error: Error) => void;
   },
-  model?: string,
-  schema?: string
+  options?: {
+    model?: string;
+    schema?: string;
+    token?: string;
+    chat_id?: string;
+  }
 ): Promise<void> {
   try {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (options?.token) {
+      headers["Authorization"] = `Bearer ${options.token}`;
+    }
+
     const res = await fetch(`${API_BASE}/chat`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ 
         message, 
-        ...(model ? { model } : {}),
-        ...(schema ? { schema } : {})
+        model: options?.model,
+        schema: options?.schema,
+        chat_id: options?.chat_id
       }),
     });
+
 
     if (!res.ok) {
       throw new Error(`Chat request failed: ${res.status}`);
@@ -147,7 +207,7 @@ export async function streamChat(
     }
 
     handlers.onDone();
-  } catch (error) {
+  } catch (error: unknown) {
     handlers.onError(
       error instanceof Error ? error : new Error(String(error))
     );

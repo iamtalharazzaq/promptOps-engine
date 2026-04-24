@@ -10,9 +10,9 @@ This roadmap outlines the evolution of **PromptOps Engine** from a local LLM int
 | :--- | :--- | :--- | :---: |
 | **01** | **Foundation** | Monorepo Setup, Go SSE, Next.js UI, Ollama | ✅ |
 | **02** | **Schema Guard** | JSON Schema Validation, Pydantic-like Go structs | ✅ |
-| **03** | **Observability** | Prometheus Metrics, Request Tracing (OpenTelemetry) | 🏗️ |
-| **04** | **Deployment** | Multi-stage Docker optimization, CI/CD (GitHub Actions) | ⏳ |
-| **05** | **Identity** | JWT Auth, Session Persistence, User Profiles | ⏳ |
+| **03** | **Observability** | Prometheus Metrics, Request Tracing (OpenTelemetry) | ✅ |
+| **04** | **Deployment** | Multi-stage Docker optimization, CI/CD (GitHub Actions) | ✅ |
+| **05** | **Identity** | JWT Auth, Session Persistence, User Profiles | ✅ |
 | **06** | **Agents** | Tool Calling, Function Execution, ReAct Loops | ⏳ |
 | **07** | **Context (RAG)** | Vector DB (Pinecone/Milvus) Integration | ⏳ |
 | **08** | **Optimisation** | Redis Caching, Prompt Templates, Rate Limiting | ⏳ |
@@ -43,16 +43,17 @@ This roadmap outlines the evolution of **PromptOps Engine** from a local LLM int
 - [ ] Trace correlation between Frontend and Backend (In Progress)
 
 ### Week 04: CI/CD & Orchestration ⚙️
-- [ ] Optimise Docker images (multi-stage builds)
-- [ ] GitHub Actions for Linting, Testing, and Building
-- [ ] Automated security scanning (Trivy)
-- [ ] Local Kubernetes (Kind/k3s) support
+- [x] Optimise Docker images (multi-stage builds)
+- [x] GitHub Actions for Linting, Testing, and Building
+- [x] Automated security scanning (Static Analysis)
+- [x] Restructured project layout (`cmd/api`)
 
 ### Week 05: Identity & Sessions 👤
-- [ ] JWT-based Authentication
-- [ ] Persistent chat history (PostgreSQL)
-- [ ] User profile settings and model preferences
-- [ ] API Key management for external users
+- [x] JWT-based Authentication (stateless)
+- [x] Persistent chat history (Supabase / Bun ORM)
+- [x] Formal migration system for database schema
+- [x] Session-aware Next.js Frontend with Auth UI
+- [x] Sidebar for conversation history management
 
 ### Week 06: Agentic Workflows 🤖
 - [ ] Implement Function Calling protocol

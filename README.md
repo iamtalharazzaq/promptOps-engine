@@ -6,7 +6,7 @@
 ![PromptOps Banner](https://img.shields.io/badge/Status-Development-emerald?style=for-the-badge)
 ![Go](https://img.shields.io/badge/Backend-Go-00ADD8?style=for-the-badge&logo=go)
 ![Next.js](https://img.shields.io/badge/Frontend-Next.js-black?style=for-the-badge&logo=next.js)
-![Docker](https://img.shields.io/badge/Deploy-Docker-2496ED?style=for-the-badge&logo=docker)
+![Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E?style=for-the-badge&logo=supabase)
 
 ---
 
@@ -15,7 +15,7 @@
 **PromptOps Engine** is a high-performance, developer-centric platform designed to bridge the gap between local LLM inference and production-ready applications. It provides a robust orchestration layer with a focus on **Type Safety**, **Real-time Observability**, and **CI/CD Best Practices**.
 
 > [!IMPORTANT]
-> This project has completed the **Week 03** milestone (**Observability & Metrics**). Production-grade logging, metrics, and monitoring are fully operational.
+> This project has completed the **Week 05** milestone (**Identity & Sessions**). Secure JWT authentication, persistent chat history via Supabase/Bun, and a optimized production CI/CD pipeline are fully operational.
 
 ---
 
@@ -29,7 +29,9 @@
 | **Premium UI** | Stunning Emerald/Black "hacker" aesthetic with glassmorphism. | ✅ |
 | **Schema Validation** | Type-safe JSON output enforcement for industrial use. | ✅ |
 | **Metrics & Monitoring** | Native Prometheus metrics for token usage and latency. | ✅ |
-| **CI/CD Driven** | Automated deployment pipelines and container security. | ⏳ |
+| **CI/CD & Deployment** | Multi-stage Docker optimization and automated pipelines. | ✅ |
+| **Identity & Auth** | Secure JWT authentication and persistent chat history. | ✅ |
+| **Database (ORM)** | Supabase PostgreSQL integrated with high-performance Bun ORM. | ✅ |
 
 ---
 

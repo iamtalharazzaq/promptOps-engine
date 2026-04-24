@@ -38,24 +38,52 @@ graph TD
 ## 📂 Project Structure
 
 ```bash
-.
-├── backend/                # Go API Server
-│   ├── cmd/                # Entry points (if refactored)
-│   ├── config/             # Environment configuration
-│   ├── handlers/           # HTTP handlers (chat, health)
-│   ├── middleware/         # CORS, Logging, Metrics, UUID
+├── backend/                # Go API Server (Refactored)
+│   ├── cmd/api/            # Main entry point (main.go)
+│   ├── config/             # Environment configuration (DB_URL, JWT_SECRET)
+│   ├── handlers/           # HTTP handlers (chat, auth, health)
+│   ├── middleware/         # CORS, Logging, Metrics, Auth, UUID
 │   ├── pkg/                # Internal packages
-│   │   ├── metrics/        # Prometheus metrics definitions
-│   │   └── utils/          # Generic utilities (SSE helper)
-│   └── services/           # Service layer (Ollama, Validator)
+│   │   ├── auth/           # JWT & Password utility functions
+│   │   ├── db/             # Database initialization & migrations
+│   │   ├── models/         # Bun ORM models (User, Chat)
+│   │   └── utils/          # Generic utilities
+│   └── services/           # Service layer
 ├── frontend/               # Next.js Web App
-│   ├── app/                # App Router (page.tsx, layout.tsx)
-│   ├── components/         # React components (ChatMessage, ChatInput)
-│   ├── lib/                # API client and logic
+│   ├── app/                # App Router (login, register, main page)
+│   ├── context/            # React Context (AuthContext)
+│   ├── components/         # Components (Sidebar, ChatInput)
+│   ├── lib/                # API client
 │   └── public/             # Static assets
-├── monitoring/             # Monitoring config (Prometheus/Grafana)
-└── docs/                   # Documentation and Roadmap
+└── monitoring/             # Monitoring config
 ```
+
+---
+
+## 🔐 Identity & Access (Week 5)
+
+PromptOps Engine uses a stateless JWT authentication system powered by **Supabase (PostgreSQL)** and **Bun ORM**.
+
+### Setup
+1. **Supabase**: Create a project and get the Connection String.
+2. **Environment**: Add `DB_URL` and `JWT_SECRET` to your `.env` or Docker secrets.
+3. **Migrations**: The engine automatically runs migrations on startup using Bun's migration runner.
+
+### Auth Flow
+- **Registration**: `POST /auth/register` creates a user with a hashed password (Bcrypt).
+- **Login**: `POST /auth/login` returns a signed JWT.
+- **Protection**: Use `middleware.RequireAuth(secret)` to protect specific routes.
+- **Context**: Authenticated `user_id` is available in `r.Context()` via `middleware.UserIDKey`.
+
+---
+
+## 🗄️ Database & Migrations
+
+We use **Bun ORM** for its high performance and clean API.
+
+- **Models**: Defined in `backend/pkg/models/models.go` with Bun tags.
+- **Migrations**: Located in `backend/pkg/db/migrations/`. 
+- **Running**: Migrations are executed automatically in `db.Init()`. To add a new migration, create a new file in the migrations directory and register it.
 
 ---
 
@@ -65,8 +93,7 @@ PromptOps Engine ensures LLM reliability through **Structured Output Validation*
 
 1. **Schema Definition**: The frontend provides a JSON Schema.
 2. **Strict Validation**: The backend validates the LLM's response using `gojsonschema`.
-3. **Automated Retries**: If validation fails, the engine automatically retries (up to 3 times) with a correction prompt.
-4. **Real-time Feedback**: UI badges show "Validating", "Valid", "Invalid", or "Retrying".
+3. **Automated Retries**: If validation fails, the engine automatically retries (up to 3 times).
 
 ---
 
@@ -74,51 +101,31 @@ PromptOps Engine ensures LLM reliability through **Structured Output Validation*
 
 ### Structured Logging
 Every request is logged as JSON via `slog` and tagged with a unique `request_id` (UUIDv4).
-```json
-{
-  "time": "2026-04-21T18:00:00Z",
-  "level": "INFO",
-  "msg": "request completed",
-  "request_id": "8da45474-97c2-469e-91c1-1087aa2a4139",
-  "method": "POST",
-  "path": "/chat",
-  "status": 200,
-  "latency": "12.34ms"
-}
-```
 
 ### Metrics Endpoint
 Exposed at `:8080/metrics` for Prometheus.
-- `promptops_http_requests_total`: Request counts by status/method.
-- `promptops_ollama_token_usage_total`: Input/Output token counts.
-- `promptops_ollama_request_duration_seconds`: LLM response time latency.
+- `promptops_http_requests_total`: Request counts.
+- `promptops_ollama_token_usage_total`: Token counts.
 
 ---
 
 ## 🚀 Development Workflow
 
-### Prerequisites
-- **Docker & Docker Compose**
-- **Go 1.24** (optional for local run)
-- **Node.js 20** (optional for local run)
-
 ### Quick Start (Docker)
 ```bash
-# 1. Start the full stack
+# 1. Configure .env with DB_URL and JWT_SECRET
+# 2. Start the full stack
 docker compose up --build
 
-# 2. Pull the default model
+# 3. Pull the default model
 docker compose exec ollama ollama pull tinyllama
-
-# 3. Access the UI
-# http://localhost:3000
 ```
 
 ### Makefile Commands
-- `make install-deps`: Install dev dependencies.
-- `make backend-run`: Run backend locally.
+- `make backend-run`: Run backend locally (requires `DB_URL`).
 - `make frontend-dev`: Run frontend locally.
-- `make backend-test`: Run BDD test suite (Ginkgo).
+- `make backend-test`: Run BDD test suite.
+
 
 ---
 

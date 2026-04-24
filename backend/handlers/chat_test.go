@@ -2,6 +2,7 @@ package handlers_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,7 +12,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"github.com/google/uuid"
 	"github.com/promptops/backend/handlers"
+	"github.com/promptops/backend/middleware"
 	"github.com/promptops/backend/services"
 )
 
@@ -22,13 +25,22 @@ var _ = Describe("ChatHandler", func() {
 		validator    *services.JSONValidator
 		defaultModel string
 		maxTokens    int
+		mockUserID   uuid.UUID
 	)
 
 	BeforeEach(func() {
 		defaultModel = "test-model"
 		maxTokens = 100
 		validator = services.NewJSONValidator()
+		mockUserID = uuid.New()
 	})
+
+	// Helper to inject user into context
+	withUser := func(req *http.Request) *http.Request {
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, middleware.UserIDKey, mockUserID)
+		return req.WithContext(ctx)
+	}
 
 	AfterEach(func() {
 		if ollamaServer != nil {
@@ -74,9 +86,10 @@ var _ = Describe("ChatHandler", func() {
 			body, _ := json.Marshal(reqBody)
 
 			req := httptest.NewRequest("POST", "/chat", bytes.NewReader(body))
+			req = withUser(req)
 			rr := httptest.NewRecorder()
 
-			handler := handlers.ChatHandler(ollamaClient, validator, defaultModel, maxTokens)
+			handler := handlers.ChatHandler(nil, ollamaClient, validator, defaultModel, maxTokens)
 			handler.ServeHTTP(rr, req)
 
 			Expect(rr.Code).To(Equal(http.StatusOK))
@@ -117,9 +130,10 @@ var _ = Describe("ChatHandler", func() {
 			body, _ := json.Marshal(reqBody)
 
 			req := httptest.NewRequest("POST", "/chat", bytes.NewReader(body))
+			req = withUser(req)
 			rr := httptest.NewRecorder()
 
-			handler := handlers.ChatHandler(ollamaClient, validator, defaultModel, maxTokens)
+			handler := handlers.ChatHandler(nil, ollamaClient, validator, defaultModel, maxTokens)
 			handler.ServeHTTP(rr, req)
 
 			Expect(callCount).To(Equal(2))
@@ -157,9 +171,10 @@ var _ = Describe("ChatHandler", func() {
 			body, _ := json.Marshal(reqBody)
 
 			req := httptest.NewRequest("POST", "/chat", bytes.NewReader(body))
+			req = withUser(req)
 			rr := httptest.NewRecorder()
 
-			handler := handlers.ChatHandler(ollamaClient, validator, defaultModel, maxTokens)
+			handler := handlers.ChatHandler(nil, ollamaClient, validator, defaultModel, maxTokens)
 			handler.ServeHTTP(rr, req)
 
 			Expect(rr.Code).To(Equal(http.StatusOK))
@@ -171,3 +186,4 @@ var _ = Describe("ChatHandler", func() {
 		})
 	})
 })
+
